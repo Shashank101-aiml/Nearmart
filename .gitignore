@@ -1,0 +1,27 @@
+# Node / Client
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Java / Backend
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env

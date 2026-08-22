@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: BuildIt
+  profiles:
+    active: dev
+server:
+  port: ${PORT:8080}
