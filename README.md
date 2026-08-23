@@ -1,11 +1,11 @@
-# BuilDit
+# Nearmart
 
-BuilDit is a hyperlocal fullstack marketplace application featuring a modern React + Vite frontend and a highly scalable Spring Boot Java backend integrated with Redis, RabbitMQ, and WebSockets.
+Nearmart is a hyperlocal fullstack marketplace application featuring a modern React + Vite frontend and a highly scalable Spring Boot Java backend integrated with Redis, RabbitMQ, and WebSockets.
 
 ## Project Structure
 
 ```
-BuilDit
+Nearmart
 ├── client/                               # React + Vite Frontend
 └── backend/                              # Spring Boot Java Backend
 ```
