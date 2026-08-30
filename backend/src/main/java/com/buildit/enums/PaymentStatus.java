@@ -1,5 +1,7 @@
 package com.buildit.enums;
 
-public class PaymentStatus {
-    
+public enum PaymentStatus {
+    CREATED,
+    PAID,
+    FAILED
 }

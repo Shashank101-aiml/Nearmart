@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import * as vendorOrderService from '../../services/vendorOrderService'
+import { badgeClassFor } from '../../utils/badges'
 
 export default function VendorOrdersPage() {
   const [orders, setOrders] = useState([])
@@ -39,7 +40,7 @@ export default function VendorOrdersPage() {
             <div className="order-card-header" onClick={() => toggleExpand(order.id)}>
               <div>
                 <strong>Order #{order.id}</strong>
-                <span className="badge badge-available">{order.status}</span>
+                <span className={`badge ${badgeClassFor(order.status)}`}>{order.status}</span>
               </div>
               <p>{new Date(order.createdAt).toLocaleString()}</p>
               <p className="price">${order.vendorSubtotal.toFixed(2)}</p>

@@ -1,5 +1,6 @@
 package com.buildit.service.implementation;
 
+import com.buildit.dto.request.VerifyPaymentRequest;
 import com.buildit.dto.response.OrderResponse;
 import com.buildit.dto.response.VendorOrderResponse;
 import com.buildit.entity.Cart;
@@ -8,9 +9,11 @@ import com.buildit.entity.Customer;
 import com.buildit.entity.Inventory;
 import com.buildit.entity.Order;
 import com.buildit.entity.OrderItem;
+import com.buildit.entity.Payment;
 import com.buildit.entity.Product;
 import com.buildit.entity.Vendor;
 import com.buildit.enums.OrderStatus;
+import com.buildit.enums.PaymentStatus;
 import com.buildit.exception.BadRequestException;
 import com.buildit.exception.ResourceNotFoundException;
 import com.buildit.exception.UnauthorizedException;
@@ -21,6 +24,9 @@ import com.buildit.repository.CartRepository;
 import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.repository.OrderRepository;
+import com.buildit.repository.PaymentRepository;
+import com.buildit.service.RazorpayGateway;
+import com.buildit.service.RazorpayOrderResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -37,6 +44,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,8 +53,8 @@ class OrderServiceImplTest {
 
     @BeforeEach
     void initTransactionSynchronization() {
-        // placeOrder() registers a transaction synchronization to publish its event only
-        // after commit. There's no real Spring transaction here, so simulate one: activate
+        // placeOrder()/verifyPayment() register a transaction synchronization to publish an event
+        // only after commit. There's no real Spring transaction here, so simulate one: activate
         // synchronization before each test and fire afterCommit() manually where needed.
         TransactionSynchronizationManager.initSynchronization();
     }
@@ -63,9 +72,16 @@ class OrderServiceImplTest {
     @Mock private CartItemRepository cartItemRepository;
     @Mock private InventoryRepository inventoryRepository;
     @Mock private OrderProducer orderProducer;
+    @Mock private RazorpayGateway razorpayGateway;
+    @Mock private PaymentRepository paymentRepository;
 
     @InjectMocks
     private OrderServiceImpl orderService;
+
+    @BeforeEach
+    void injectRazorpayKeyId() {
+        ReflectionTestUtils.setField(orderService, "razorpayKeyId", "rzp_test_dummy");
+    }
 
     private Customer customerWithId(Long id) {
         Customer customer = new Customer();
@@ -105,10 +121,14 @@ class OrderServiceImplTest {
     }
 
     private Order orderWithId(Long id, Customer customer) {
+        return orderWithIdAndStatus(id, customer, OrderStatus.PLACED);
+    }
+
+    private Order orderWithIdAndStatus(Long id, Customer customer, OrderStatus status) {
         Order order = new Order();
         order.setId(id);
         order.setCustomer(customer);
-        order.setStatus(OrderStatus.PLACED);
+        order.setStatus(status);
         order.setCreatedAt(java.time.LocalDateTime.now());
         return order;
     }
@@ -146,8 +166,18 @@ class OrderServiceImplTest {
         return item;
     }
 
+    private Payment paymentFor(Order order, String razorpayOrderId, PaymentStatus status, double amount) {
+        Payment payment = new Payment();
+        payment.setId(900L);
+        payment.setOrder(order);
+        payment.setRazorpayOrderId(razorpayOrderId);
+        payment.setAmount(amount);
+        payment.setStatus(status);
+        return payment;
+    }
+
     @Test
-    void placeOrderCreatesOrderAndClearsCart() {
+    void placeOrderCreatesPendingPaymentOrderAndRazorpayOrder() {
         Customer customer = customerWithId(1L);
         Cart cart = cartFor(10L, customer);
         Product product = productWithId(5L, 3.5);
@@ -162,32 +192,52 @@ class OrderServiceImplTest {
             o.setCreatedAt(java.time.LocalDateTime.now());
             return o;
         });
-        OrderItem savedItem = new OrderItem();
-        savedItem.setProduct(product);
-        savedItem.setProductTitle("Widget");
-        savedItem.setUnitPrice(3.5);
-        savedItem.setQuantity(2);
-        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(savedItem));
+        when(orderItemRepository.save(any(OrderItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(razorpayGateway.createOrder(anyLong(), anyString()))
+            .thenReturn(new RazorpayOrderResult("order_rzp_test123"));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         OrderResponse response = orderService.placeOrder(1L);
 
         assertThat(response.getId()).isEqualTo(100L);
-        assertThat(response.getStatus()).isEqualTo("PLACED");
+        assertThat(response.getStatus()).isEqualTo("PENDING_PAYMENT");
         assertThat(response.getItems()).hasSize(1);
         assertThat(response.getTotal()).isEqualTo(7.0);
+        assertThat(response.getRazorpayOrderId()).isEqualTo("order_rzp_test123");
+        assertThat(response.getRazorpayKeyId()).isEqualTo("rzp_test_dummy");
+        assertThat(response.getAmountInPaise()).isEqualTo(700L);
 
-        // No real transaction is committing in this test, so the event-publishing
-        // synchronization placeOrder() registered must be fired manually here.
-        verify(orderProducer, never()).sendOrderCreatedEvent(any());
-        for (TransactionSynchronization sync : TransactionSynchronizationManager.getSynchronizations()) {
-            sync.afterCommit();
-        }
-
-        verify(orderItemRepository).save(argThat(oi ->
-            oi.getProductTitle().equals("Widget") && oi.getUnitPrice() == 3.5 && oi.getQuantity() == 2));
+        verify(razorpayGateway).createOrder(700L, "order_100");
+        verify(paymentRepository).save(argThat(p ->
+            p.getRazorpayOrderId().equals("order_rzp_test123") && p.getStatus() == PaymentStatus.CREATED));
         verify(cartItemRepository).deleteAll(List.of(item));
-        verify(orderProducer).sendOrderCreatedEvent(argThat((OrderCreatedEvent e) ->
-            e.getOrderId().equals(100L) && e.getCustomerId().equals(1L)));
+    }
+
+    @Test
+    void placeOrderNoLongerPublishesOrderCreatedEventBeforePayment() {
+        Customer customer = customerWithId(1L);
+        Cart cart = cartFor(10L, customer);
+        Product product = productWithId(5L, 3.5);
+        CartItem item = cartItem(cart, product, 2);
+
+        when(cartRepository.findByCustomerId(1L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByCartId(10L)).thenReturn(List.of(item));
+        when(inventoryRepository.findByProductId(5L)).thenReturn(Optional.of(inventoryOf(5L, 10)));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order o = invocation.getArgument(0);
+            o.setId(100L);
+            o.setCreatedAt(java.time.LocalDateTime.now());
+            return o;
+        });
+        when(orderItemRepository.save(any(OrderItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(razorpayGateway.createOrder(anyLong(), anyString()))
+            .thenReturn(new RazorpayOrderResult("order_rzp_test123"));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        orderService.placeOrder(1L);
+
+        assertThat(TransactionSynchronizationManager.getSynchronizations()).isEmpty();
+        verify(orderProducer, never()).sendOrderCreatedEvent(any());
     }
 
     @Test
@@ -228,6 +278,32 @@ class OrderServiceImplTest {
 
         verify(orderRepository, never()).save(any());
         verify(cartItemRepository, never()).deleteAll(any());
+    }
+
+    @Test
+    void placeOrderPropagatesBadRequestWhenGatewayFails() {
+        Customer customer = customerWithId(1L);
+        Cart cart = cartFor(10L, customer);
+        Product product = productWithId(5L, 3.5);
+        CartItem item = cartItem(cart, product, 2);
+
+        when(cartRepository.findByCustomerId(1L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByCartId(10L)).thenReturn(List.of(item));
+        when(inventoryRepository.findByProductId(5L)).thenReturn(Optional.of(inventoryOf(5L, 10)));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order o = invocation.getArgument(0);
+            o.setId(100L);
+            o.setCreatedAt(java.time.LocalDateTime.now());
+            return o;
+        });
+        when(orderItemRepository.save(any(OrderItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(razorpayGateway.createOrder(anyLong(), anyString()))
+            .thenThrow(new BadRequestException("Payment provider error: could not create order"));
+
+        assertThatThrownBy(() -> orderService.placeOrder(1L))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(paymentRepository, never()).save(any());
     }
 
     @Test
@@ -275,6 +351,126 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void verifyPaymentMarksOrderPlacedAndPublishesEventOnValidSignature() {
+        Customer customer = customerWithId(1L);
+        Order order = orderWithIdAndStatus(100L, customer, OrderStatus.PENDING_PAYMENT);
+        Payment payment = paymentFor(order, "order_rzp_test123", PaymentStatus.CREATED, 7.0);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(100L)).thenReturn(Optional.of(payment));
+        when(razorpayGateway.verifySignature("order_rzp_test123", "pay_abc", "sig_valid")).thenReturn(true);
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of());
+
+        VerifyPaymentRequest request = new VerifyPaymentRequest();
+        request.setRazorpayOrderId("order_rzp_test123");
+        request.setRazorpayPaymentId("pay_abc");
+        request.setRazorpaySignature("sig_valid");
+
+        OrderResponse response = orderService.verifyPayment(1L, 100L, request);
+
+        assertThat(response.getStatus()).isEqualTo("PLACED");
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PLACED);
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(payment.getRazorpayPaymentId()).isEqualTo("pay_abc");
+
+        verify(orderProducer, never()).sendOrderCreatedEvent(any());
+        for (TransactionSynchronization sync : TransactionSynchronizationManager.getSynchronizations()) {
+            sync.afterCommit();
+        }
+        verify(orderProducer).sendOrderCreatedEvent(argThat((OrderCreatedEvent e) ->
+            e.getOrderId().equals(100L) && e.getCustomerId().equals(1L)));
+    }
+
+    @Test
+    void verifyPaymentMarksPaymentFailedOnInvalidSignature() {
+        Customer customer = customerWithId(1L);
+        Order order = orderWithIdAndStatus(100L, customer, OrderStatus.PENDING_PAYMENT);
+        Payment payment = paymentFor(order, "order_rzp_test123", PaymentStatus.CREATED, 7.0);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(100L)).thenReturn(Optional.of(payment));
+        when(razorpayGateway.verifySignature(anyString(), anyString(), anyString())).thenReturn(false);
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        VerifyPaymentRequest request = new VerifyPaymentRequest();
+        request.setRazorpayOrderId("order_rzp_test123");
+        request.setRazorpayPaymentId("pay_abc");
+        request.setRazorpaySignature("sig_bad");
+
+        assertThatThrownBy(() -> orderService.verifyPayment(1L, 100L, request))
+            .isInstanceOf(BadRequestException.class);
+
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PAYMENT_FAILED);
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
+        verify(orderProducer, never()).sendOrderCreatedEvent(any());
+    }
+
+    @Test
+    void verifyPaymentThrowsUnauthorizedWhenNotOwner() {
+        Customer customer = customerWithId(1L);
+        Order order = orderWithIdAndStatus(100L, customer, OrderStatus.PENDING_PAYMENT);
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+
+        VerifyPaymentRequest request = new VerifyPaymentRequest();
+        request.setRazorpayOrderId("order_rzp_test123");
+        request.setRazorpayPaymentId("pay_abc");
+        request.setRazorpaySignature("sig_valid");
+
+        assertThatThrownBy(() -> orderService.verifyPayment(2L, 100L, request))
+            .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    void verifyPaymentThrowsResourceNotFoundWhenOrderMissing() {
+        when(orderRepository.findById(404L)).thenReturn(Optional.empty());
+
+        VerifyPaymentRequest request = new VerifyPaymentRequest();
+        request.setRazorpayOrderId("order_rzp_test123");
+        request.setRazorpayPaymentId("pay_abc");
+        request.setRazorpaySignature("sig_valid");
+
+        assertThatThrownBy(() -> orderService.verifyPayment(1L, 404L, request))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void retryPaymentResetsFailedOrderToPendingWithFreshRazorpayOrder() {
+        Customer customer = customerWithId(1L);
+        Order order = orderWithIdAndStatus(100L, customer, OrderStatus.PAYMENT_FAILED);
+        Payment payment = paymentFor(order, "order_rzp_old", PaymentStatus.FAILED, 7.0);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(100L)).thenReturn(Optional.of(payment));
+        when(razorpayGateway.createOrder(anyLong(), anyString()))
+            .thenReturn(new RazorpayOrderResult("order_rzp_new"));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of());
+
+        OrderResponse response = orderService.retryPayment(1L, 100L);
+
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING_PAYMENT);
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CREATED);
+        assertThat(payment.getRazorpayPaymentId()).isNull();
+        assertThat(response.getRazorpayOrderId()).isEqualTo("order_rzp_new");
+    }
+
+    @Test
+    void retryPaymentRejectsAlreadyPlacedOrder() {
+        Customer customer = customerWithId(1L);
+        Order order = orderWithIdAndStatus(100L, customer, OrderStatus.PLACED);
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> orderService.retryPayment(1L, 100L))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(razorpayGateway, never()).createOrder(anyLong(), anyString());
+    }
+
+    @Test
     void listVendorOrdersShowsOnlyOwnItemsWhenOrderHasMultipleVendors() {
         Customer customer = customerWithIdAndName(1L, "Jane Doe");
         Order order = orderWithId(100L, customer);
@@ -315,6 +511,25 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void listVendorOrdersExcludesNonPlacedOrders() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order placedOrder = orderWithId(100L, customer);
+        Order pendingOrder = orderWithIdAndStatus(101L, customer, OrderStatus.PENDING_PAYMENT);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+
+        OrderItem itemInPlacedOrder = orderItemFor(placedOrder, product, 1);
+        OrderItem itemInPendingOrder = orderItemFor(pendingOrder, product, 1);
+
+        when(orderItemRepository.findByProductVendorId(10L))
+            .thenReturn(List.of(itemInPlacedOrder, itemInPendingOrder));
+
+        List<VendorOrderResponse> results = orderService.listVendorOrders(10L);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getId()).isEqualTo(100L);
+    }
+
+    @Test
     void getVendorOrderSucceedsWhenVendorOwnsAtLeastOneItem() {
         Customer customer = customerWithIdAndName(1L, "Jane Doe");
         Order order = orderWithId(100L, customer);
@@ -342,6 +557,20 @@ class OrderServiceImplTest {
 
         when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
         when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(itemB));
+
+        assertThatThrownBy(() -> orderService.getVendorOrder(10L, 100L))
+            .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    void getVendorOrderThrowsUnauthorizedWhenOrderNotYetPaid() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithIdAndStatus(100L, customer, OrderStatus.PENDING_PAYMENT);
+        Product vendorAProduct = productOwnedBy(5L, 10L, 3.0);
+        OrderItem itemA = orderItemFor(order, vendorAProduct, 2);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(itemA));
 
         assertThatThrownBy(() -> orderService.getVendorOrder(10L, 100L))
             .isInstanceOf(UnauthorizedException.class);

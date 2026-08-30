@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import * as cartService from '../../services/cartService'
 import * as orderService from '../../services/orderService'
+import { openRazorpayCheckout } from '../../utils/razorpayCheckout'
 
 export default function CartPage() {
   const navigate = useNavigate()
@@ -46,8 +47,8 @@ export default function CartPage() {
     setError('')
     setCheckingOut(true)
     try {
-      await orderService.placeOrder()
-      navigate('/customer/orders')
+      const order = await orderService.placeOrder()
+      openRazorpayCheckout(order, { onSettled: () => navigate('/customer/orders') })
     } catch (err) {
       setError(err.message || 'Checkout failed')
     } finally {

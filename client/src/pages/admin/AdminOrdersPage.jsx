@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import * as adminService from '../../services/adminService'
+import { badgeClassFor } from '../../utils/badges'
 
 function groupByVendor(items) {
   const groups = new Map()
@@ -66,7 +67,7 @@ export default function AdminOrdersPage() {
               <div className="order-card-header" onClick={() => toggleExpand(order)}>
                 <div>
                   <strong>Order #{order.id}</strong>
-                  <span className="badge badge-available">{order.status}</span>
+                  <span className={`badge ${badgeClassFor(order.status)}`}>{order.status}</span>
                 </div>
                 <p>{new Date(order.createdAt).toLocaleString()}</p>
                 <p className="price">${order.total.toFixed(2)}</p>

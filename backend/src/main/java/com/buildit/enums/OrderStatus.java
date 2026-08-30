@@ -1,5 +1,7 @@
 package com.buildit.enums;
 
 public enum OrderStatus {
-    PLACED
+    PENDING_PAYMENT,
+    PLACED,
+    PAYMENT_FAILED
 }

@@ -360,6 +360,16 @@
   color: var(--text);
 }
 
+.badge-pending {
+  background: var(--code-bg);
+  color: var(--text);
+}
+
+.badge-failed {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
 .product-card button {
   font: inherit;
   padding: 6px 10px;

@@ -1,12 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import * as orderService from '../../services/orderService'
+import * as paymentService from '../../services/paymentService'
+import { openRazorpayCheckout } from '../../utils/razorpayCheckout'
+import { badgeClassFor } from '../../utils/badges'
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [expandedId, setExpandedId] = useState(null)
+  const [retryingId, setRetryingId] = useState(null)
+
+  const refetchOrders = () => {
+    orderService
+      .listOrders()
+      .then(setOrders)
+      .catch((err) => setError(err.message || 'Failed to load orders'))
+  }
 
   useEffect(() => {
     orderService
@@ -18,6 +29,19 @@ export default function OrdersPage() {
 
   const toggleExpand = (id) => {
     setExpandedId((current) => (current === id ? null : id))
+  }
+
+  const handleRetry = async (order) => {
+    setError('')
+    setRetryingId(order.id)
+    try {
+      const updated = await paymentService.retryPayment(order.id)
+      openRazorpayCheckout(updated, { onSettled: refetchOrders })
+    } catch (err) {
+      setError(err.message || 'Retry failed')
+    } finally {
+      setRetryingId(null)
+    }
   }
 
   return (
@@ -39,7 +63,7 @@ export default function OrdersPage() {
             <div className="order-card-header" onClick={() => toggleExpand(order.id)}>
               <div>
                 <strong>Order #{order.id}</strong>
-                <span className="badge badge-available">{order.status}</span>
+                <span className={`badge ${badgeClassFor(order.status)}`}>{order.status}</span>
               </div>
               <p>{new Date(order.createdAt).toLocaleString()}</p>
               <p className="price">${order.total.toFixed(2)}</p>
@@ -47,6 +71,11 @@ export default function OrdersPage() {
             <button type="button" onClick={() => toggleExpand(order.id)}>
               {expandedId === order.id ? 'Hide items' : 'Show items'}
             </button>
+            {(order.status === 'PENDING_PAYMENT' || order.status === 'PAYMENT_FAILED') && (
+              <button type="button" onClick={() => handleRetry(order)} disabled={retryingId === order.id}>
+                {retryingId === order.id ? 'Opening payment...' : 'Retry payment'}
+              </button>
+            )}
             {expandedId === order.id && (
               <div className="order-items">
                 {order.items.map((item, index) => (
