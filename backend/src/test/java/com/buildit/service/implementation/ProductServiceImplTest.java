@@ -6,6 +6,7 @@ import com.buildit.entity.Product;
 import com.buildit.entity.Vendor;
 import com.buildit.exception.ResourceNotFoundException;
 import com.buildit.exception.UnauthorizedException;
+import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.ProductRepository;
 import com.buildit.repository.VendorRepository;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ class ProductServiceImplTest {
 
     @Mock private ProductRepository productRepository;
     @Mock private VendorRepository vendorRepository;
+    @Mock private InventoryRepository inventoryRepository;
 
     @InjectMocks
     private ProductServiceImpl productService;
@@ -55,6 +57,7 @@ class ProductServiceImplTest {
         request.setTitle("Widget");
         request.setDescription("A useful widget");
         request.setPrice(9.99);
+        request.setStockQuantity(20);
         return request;
     }
 
@@ -73,6 +76,7 @@ class ProductServiceImplTest {
         assertThat(response.getId()).isEqualTo(100L);
         assertThat(response.getVendorId()).isEqualTo(1L);
         assertThat(response.getAvailable()).isTrue();
+        verify(inventoryRepository).save(argThat(inv -> inv.getProductId().equals(100L) && inv.getQuantity() == 20));
     }
 
     @Test

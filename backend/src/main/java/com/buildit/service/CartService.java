@@ -1,13 +1,12 @@
 package com.buildit.service;
 
-import com.buildit.repository.CartRepository;
-import org.springframework.stereotype.Service;
+import com.buildit.dto.request.AddCartItemRequest;
+import com.buildit.dto.request.UpdateCartItemRequest;
+import com.buildit.dto.response.CartResponse;
 
-@Service
-public class CartService {
-    private final CartRepository cartRepository;
-
-    public CartService(CartRepository cartRepository) {
-        this.cartRepository = cartRepository;
-    }
+public interface CartService {
+    CartResponse getCart(Long customerId);
+    CartResponse addItem(Long customerId, AddCartItemRequest request);
+    CartResponse updateItemQuantity(Long customerId, Long productId, UpdateCartItemRequest request);
+    CartResponse removeItem(Long customerId, Long productId);
 }

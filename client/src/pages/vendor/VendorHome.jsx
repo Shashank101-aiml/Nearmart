@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import * as productService from '../../services/productService'
 
-const emptyForm = { title: '', description: '', price: '', available: true }
+const emptyForm = { title: '', description: '', price: '', stockQuantity: '', available: true }
 
 export default function VendorHome() {
   const { user, logout } = useAuth()
@@ -39,6 +39,7 @@ export default function VendorHome() {
         title: createForm.title,
         description: createForm.description,
         price: Number(createForm.price),
+        stockQuantity: Number(createForm.stockQuantity),
         available: createForm.available,
       })
       setProducts([created, ...products])
@@ -56,6 +57,7 @@ export default function VendorHome() {
       title: product.title,
       description: product.description || '',
       price: String(product.price),
+      stockQuantity: String(product.stockQuantity ?? 0),
       available: product.available,
     })
   }
@@ -79,6 +81,7 @@ export default function VendorHome() {
         title: editForm.title,
         description: editForm.description,
         price: Number(editForm.price),
+        stockQuantity: Number(editForm.stockQuantity),
         available: editForm.available,
       })
       setProducts(products.map((p) => (p.id === productId ? updated : p)))
@@ -97,6 +100,7 @@ export default function VendorHome() {
         title: product.title,
         description: product.description,
         price: product.price,
+        stockQuantity: product.stockQuantity,
         available: !product.available,
       })
       setProducts(products.map((p) => (p.id === product.id ? updated : p)))
@@ -155,6 +159,18 @@ export default function VendorHome() {
               required
             />
           </label>
+          <label>
+            Stock
+            <input
+              name="stockQuantity"
+              type="number"
+              step="1"
+              min="0"
+              value={createForm.stockQuantity}
+              onChange={handleCreateChange}
+              required
+            />
+          </label>
           <label className="checkbox-label">
             <input
               name="available"
@@ -203,6 +219,18 @@ export default function VendorHome() {
                     required
                   />
                 </label>
+                <label>
+                  Stock
+                  <input
+                    name="stockQuantity"
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={editForm.stockQuantity}
+                    onChange={handleEditChange}
+                    required
+                  />
+                </label>
                 <label className="checkbox-label">
                   <input
                     name="available"
@@ -226,6 +254,7 @@ export default function VendorHome() {
                 <h3>{product.title}</h3>
                 <p className="price">${product.price.toFixed(2)}</p>
                 {product.description && <p className="description">{product.description}</p>}
+                <p>Stock: {product.stockQuantity}</p>
                 <p className={product.available ? 'badge badge-available' : 'badge badge-hidden'}>
                   {product.available ? 'Available' : 'Hidden'}
                 </p>

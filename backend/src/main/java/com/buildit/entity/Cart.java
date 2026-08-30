@@ -8,10 +8,13 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long customerId;
+
+    @OneToOne
+    @JoinColumn(name = "customer_id", nullable = false, unique = true)
+    private Customer customer;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Long getCustomerId() { return customerId; }
-    public void setCustomerId(Long customerId) { this.customerId = customerId; }
+    public Customer getCustomer() { return customer; }
+    public void setCustomer(Customer customer) { this.customer = customer; }
 }

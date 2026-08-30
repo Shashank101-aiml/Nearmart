@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import * as productService from '../../services/productService'
+import * as cartService from '../../services/cartService'
+import ProductCard from '../../components/common/ProductCard'
 
 export default function VendorStorefront() {
   const { vendorId } = useParams()
@@ -8,6 +10,8 @@ export default function VendorStorefront() {
   const [products, setProducts] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [addingId, setAddingId] = useState(null)
+  const [addErrors, setAddErrors] = useState({})
 
   useEffect(() => {
     Promise.all([productService.getVendor(vendorId), productService.listByVendor(vendorId)])
@@ -19,6 +23,18 @@ export default function VendorStorefront() {
       .finally(() => setLoading(false))
   }, [vendorId])
 
+  const handleAddToCart = async (product) => {
+    setAddingId(product.id)
+    setAddErrors((current) => ({ ...current, [product.id]: null }))
+    try {
+      await cartService.addItem(product.id, 1)
+    } catch (err) {
+      setAddErrors((current) => ({ ...current, [product.id]: err.message || 'Failed to add to cart' }))
+    } finally {
+      setAddingId(null)
+    }
+  }
+
   return (
     <div className="catalog-page">
       <header className="catalog-header">
@@ -26,6 +42,9 @@ export default function VendorStorefront() {
           <Link to="/customer">&larr; Back to catalog</Link>
           {vendor && <h1>{vendor.storeName}</h1>}
           {vendor?.location && <p>{vendor.location}</p>}
+        </div>
+        <div className="header-actions">
+          <Link to="/customer/cart">Cart</Link>
         </div>
       </header>
 
@@ -35,11 +54,13 @@ export default function VendorStorefront() {
 
       <div className="product-grid">
         {products.map((product) => (
-          <div className="product-card" key={product.id}>
-            <h3>{product.title}</h3>
-            <p className="price">${product.price.toFixed(2)}</p>
-            {product.description && <p className="description">{product.description}</p>}
-          </div>
+          <ProductCard
+            key={product.id}
+            product={product}
+            onAddToCart={handleAddToCart}
+            adding={addingId === product.id}
+            addError={addErrors[product.id]}
+          />
         ))}
       </div>
     </div>

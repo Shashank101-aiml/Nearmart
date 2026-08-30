@@ -11,9 +11,10 @@ public class ProductResponse {
     private LocalDateTime createdAt;
     private Long vendorId;
     private String storeName;
+    private Integer stockQuantity;
 
     public ProductResponse(Long id, String title, String description, Double price, Boolean available,
-                            LocalDateTime createdAt, Long vendorId, String storeName) {
+                            LocalDateTime createdAt, Long vendorId, String storeName, Integer stockQuantity) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -22,6 +23,7 @@ public class ProductResponse {
         this.createdAt = createdAt;
         this.vendorId = vendorId;
         this.storeName = storeName;
+        this.stockQuantity = stockQuantity;
     }
 
     public Long getId() { return id; }
@@ -40,4 +42,6 @@ public class ProductResponse {
     public void setVendorId(Long vendorId) { this.vendorId = vendorId; }
     public String getStoreName() { return storeName; }
     public void setStoreName(String storeName) { this.storeName = storeName; }
+    public Integer getStockQuantity() { return stockQuantity; }
+    public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
 }

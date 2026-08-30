@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import * as productService from '../../services/productService'
+import * as cartService from '../../services/cartService'
+import ProductCard from '../../components/common/ProductCard'
 
 export default function CustomerHome() {
   const { user, logout } = useAuth()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [expandedId, setExpandedId] = useState(null)
+  const [addingId, setAddingId] = useState(null)
+  const [addErrors, setAddErrors] = useState({})
 
   useEffect(() => {
     productService
@@ -18,8 +21,16 @@ export default function CustomerHome() {
       .finally(() => setLoading(false))
   }, [])
 
-  const toggleExpand = (id) => {
-    setExpandedId((current) => (current === id ? null : id))
+  const handleAddToCart = async (product) => {
+    setAddingId(product.id)
+    setAddErrors((current) => ({ ...current, [product.id]: null }))
+    try {
+      await cartService.addItem(product.id, 1)
+    } catch (err) {
+      setAddErrors((current) => ({ ...current, [product.id]: err.message || 'Failed to add to cart' }))
+    } finally {
+      setAddingId(null)
+    }
   }
 
   return (
@@ -31,9 +42,12 @@ export default function CustomerHome() {
             Signed in as <strong>{user.username}</strong> ({user.role})
           </p>
         </div>
-        <button type="button" onClick={logout}>
-          Log out
-        </button>
+        <div className="header-actions">
+          <Link to="/customer/cart">Cart</Link>
+          <button type="button" onClick={logout}>
+            Log out
+          </button>
+        </div>
       </header>
 
       {error && <p className="auth-error">{error}</p>}
@@ -42,23 +56,14 @@ export default function CustomerHome() {
 
       <div className="product-grid">
         {products.map((product) => (
-          <div className="product-card" key={product.id}>
-            <h3>{product.title}</h3>
-            <p className="price">${product.price.toFixed(2)}</p>
-            <p className="store-name">
-              <Link to={`/customer/vendors/${product.vendorId}`}>{product.storeName}</Link>
-            </p>
-            {expandedId === product.id ? (
-              <p className="description">{product.description || 'No description provided.'}</p>
-            ) : (
-              product.description && (
-                <p className="description truncated">{product.description}</p>
-              )
-            )}
-            <button type="button" onClick={() => toggleExpand(product.id)}>
-              {expandedId === product.id ? 'Show less' : 'Show more'}
-            </button>
-          </div>
+          <ProductCard
+            key={product.id}
+            product={product}
+            showStoreLink
+            onAddToCart={handleAddToCart}
+            adding={addingId === product.id}
+            addError={addErrors[product.id]}
+          />
         ))}
       </div>
     </div>

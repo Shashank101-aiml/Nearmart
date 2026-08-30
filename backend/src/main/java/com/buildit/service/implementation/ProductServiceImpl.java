@@ -2,10 +2,12 @@ package com.buildit.service.implementation;
 
 import com.buildit.dto.request.ProductRequest;
 import com.buildit.dto.response.ProductResponse;
+import com.buildit.entity.Inventory;
 import com.buildit.entity.Product;
 import com.buildit.entity.Vendor;
 import com.buildit.exception.ResourceNotFoundException;
 import com.buildit.exception.UnauthorizedException;
+import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.ProductRepository;
 import com.buildit.repository.VendorRepository;
 import com.buildit.service.ProductService;
@@ -18,10 +20,13 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final VendorRepository vendorRepository;
+    private final InventoryRepository inventoryRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository, VendorRepository vendorRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, VendorRepository vendorRepository,
+                               InventoryRepository inventoryRepository) {
         this.productRepository = productRepository;
         this.vendorRepository = vendorRepository;
+        this.inventoryRepository = inventoryRepository;
     }
 
     @Override
@@ -36,8 +41,14 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setAvailable(request.getAvailable() != null ? request.getAvailable() : true);
+        product = productRepository.save(product);
 
-        return toResponse(productRepository.save(product));
+        Inventory inventory = new Inventory();
+        inventory.setProductId(product.getId());
+        inventory.setQuantity(request.getStockQuantity());
+        inventoryRepository.save(inventory);
+
+        return toResponse(product);
     }
 
     @Override
@@ -50,7 +61,17 @@ public class ProductServiceImpl implements ProductService {
         if (request.getAvailable() != null) {
             product.setAvailable(request.getAvailable());
         }
-        return toResponse(productRepository.save(product));
+        product = productRepository.save(product);
+
+        Inventory inventory = inventoryRepository.findByProductId(productId).orElseGet(() -> {
+            Inventory newInventory = new Inventory();
+            newInventory.setProductId(productId);
+            return newInventory;
+        });
+        inventory.setQuantity(request.getStockQuantity());
+        inventoryRepository.save(inventory);
+
+        return toResponse(product);
     }
 
     @Override
@@ -91,6 +112,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductResponse toResponse(Product product) {
+        int stockQuantity = inventoryRepository.findByProductId(product.getId())
+            .map(inventory -> inventory.getQuantity() != null ? inventory.getQuantity() : 0)
+            .orElse(0);
+
         return new ProductResponse(
             product.getId(),
             product.getTitle(),
@@ -99,7 +124,8 @@ public class ProductServiceImpl implements ProductService {
             product.getAvailable(),
             product.getCreatedAt(),
             product.getVendor().getId(),
-            product.getVendor().getStoreName()
+            product.getVendor().getStoreName(),
+            stockQuantity
         );
     }
 }
