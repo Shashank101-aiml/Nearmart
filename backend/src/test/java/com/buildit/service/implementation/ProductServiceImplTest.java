@@ -132,6 +132,26 @@ class ProductServiceImplTest {
     }
 
     @Test
+    void setAvailabilityHidesProductRegardlessOfOwnership() {
+        Product product = productOwnedBy(10L, 1L);
+        when(productRepository.findById(10L)).thenReturn(Optional.of(product));
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProductResponse response = productService.setAvailability(10L, false);
+
+        assertThat(response.getAvailable()).isFalse();
+        verify(productRepository).save(argThat(p -> !p.getAvailable()));
+    }
+
+    @Test
+    void setAvailabilityThrowsWhenProductNotFound() {
+        when(productRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> productService.setAvailability(404L, false))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
     void listAvailableReturnsOnlyAvailableProducts() {
         Product product = productOwnedBy(10L, 1L);
         when(productRepository.findByAvailableTrue()).thenReturn(List.of(product));

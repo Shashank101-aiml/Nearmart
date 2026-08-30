@@ -10,6 +10,9 @@ import OrdersPage from '../pages/customer/OrdersPage'
 import VendorHome from '../pages/vendor/VendorHome'
 import VendorOrdersPage from '../pages/vendor/VendorOrdersPage'
 import AdminHome from '../pages/admin/AdminHome'
+import AdminUsersPage from '../pages/admin/AdminUsersPage'
+import AdminVendorsPage from '../pages/admin/AdminVendorsPage'
+import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
 
 function roleHomePath(role) {
   return `/${role.toLowerCase()}`
@@ -100,6 +103,30 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <AdminHome />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <AdminUsersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/vendors"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <AdminVendorsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/orders"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <AdminOrdersPage />
           </ProtectedRoute>
         }
       />

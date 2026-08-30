@@ -102,6 +102,16 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByVendorId(vendorId).stream().map(this::toResponse).toList();
     }
 
+    @Override
+    @Transactional
+    public ProductResponse setAvailability(Long productId, boolean available) {
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        product.setAvailable(available);
+        product = productRepository.save(product);
+        return toResponse(product);
+    }
+
     private Product findOwnedProduct(Long vendorId, Long productId) {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException("Product not found"));

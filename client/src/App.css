@@ -337,6 +337,12 @@
   overflow: hidden;
 }
 
+.badge {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
 .product-card .badge {
   align-self: flex-start;
   font-size: 12px;

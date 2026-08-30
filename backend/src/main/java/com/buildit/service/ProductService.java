@@ -13,4 +13,5 @@ public interface ProductService {
     List<ProductResponse> listAvailable();
     List<ProductResponse> listByVendor(Long vendorId);
     List<ProductResponse> listOwnProducts(Long vendorId);
+    ProductResponse setAvailability(Long productId, boolean available);
 }
