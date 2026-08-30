@@ -9,7 +9,7 @@ spring:
       ddl-auto: validate
     show-sql: true
   flyway:
-    locations: classpath:db/migration,classpath:db/migration/dev
+    locations: classpath:db/migration,classpath:db/migration-dev
   data:
     redis:
       host: ${REDIS_HOST:localhost}

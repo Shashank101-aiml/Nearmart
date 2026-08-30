@@ -11,3 +11,8 @@ jwt:
 razorpay:
   key-id: ${RAZORPAY_KEY_ID:}
   key-secret: ${RAZORPAY_KEY_SECRET:}
+admin:
+  bootstrap:
+    username: ${ADMIN_BOOTSTRAP_USERNAME:}
+    email: ${ADMIN_BOOTSTRAP_EMAIL:}
+    password: ${ADMIN_BOOTSTRAP_PASSWORD:}
