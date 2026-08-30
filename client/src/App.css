@@ -370,6 +370,16 @@
   color: #dc2626;
 }
 
+.badge-shipped {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.badge-delivered {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+}
+
 .product-card button {
   font: inherit;
   padding: 6px 10px;

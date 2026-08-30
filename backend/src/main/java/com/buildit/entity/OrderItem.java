@@ -1,5 +1,6 @@
 package com.buildit.entity;
 
+import com.buildit.enums.ItemFulfillmentStatus;
 import jakarta.persistence.*;
 
 @Entity
@@ -26,6 +27,10 @@ public class OrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fulfillment_status", nullable = false)
+    private ItemFulfillmentStatus fulfillmentStatus = ItemFulfillmentStatus.PROCESSING;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Order getOrder() { return order; }
@@ -38,4 +43,6 @@ public class OrderItem {
     public void setUnitPrice(Double unitPrice) { this.unitPrice = unitPrice; }
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public ItemFulfillmentStatus getFulfillmentStatus() { return fulfillmentStatus; }
+    public void setFulfillmentStatus(ItemFulfillmentStatus fulfillmentStatus) { this.fulfillmentStatus = fulfillmentStatus; }
 }

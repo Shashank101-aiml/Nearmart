@@ -3,6 +3,7 @@ package com.buildit.service;
 import com.buildit.dto.request.VerifyPaymentRequest;
 import com.buildit.dto.response.OrderResponse;
 import com.buildit.dto.response.VendorOrderResponse;
+import com.buildit.enums.ItemFulfillmentStatus;
 
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface OrderService {
     VendorOrderResponse getVendorOrder(Long vendorId, Long orderId);
     OrderResponse verifyPayment(Long customerId, Long orderId, VerifyPaymentRequest request);
     OrderResponse retryPayment(Long customerId, Long orderId);
+    VendorOrderResponse updateItemFulfillmentStatus(Long vendorId, Long orderId, Long itemId,
+                                                     ItemFulfillmentStatus newStatus);
 }

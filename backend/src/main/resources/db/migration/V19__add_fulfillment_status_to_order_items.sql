@@ -1,0 +1,1 @@
+ALTER TABLE order_items ADD COLUMN fulfillment_status VARCHAR(255) NOT NULL DEFAULT 'PROCESSING';

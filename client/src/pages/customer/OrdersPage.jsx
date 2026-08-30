@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import * as orderService from '../../services/orderService'
 import * as paymentService from '../../services/paymentService'
 import { openRazorpayCheckout } from '../../utils/razorpayCheckout'
-import { badgeClassFor } from '../../utils/badges'
+import { badgeClassFor, fulfillmentBadgeClassFor } from '../../utils/badges'
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([])
@@ -78,13 +78,16 @@ export default function OrdersPage() {
             )}
             {expandedId === order.id && (
               <div className="order-items">
-                {order.items.map((item, index) => (
-                  <div className="order-item" key={index}>
+                {order.items.map((item) => (
+                  <div className="order-item" key={item.id}>
                     <span>{item.productTitle}</span>
                     <span>
                       {item.quantity} &times; ${item.unitPrice.toFixed(2)}
                     </span>
                     <span>${item.lineTotal.toFixed(2)}</span>
+                    <span className={`badge ${fulfillmentBadgeClassFor(item.fulfillmentStatus)}`}>
+                      {item.fulfillmentStatus}
+                    </span>
                   </div>
                 ))}
               </div>

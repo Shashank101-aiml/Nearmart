@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import * as vendorOrderService from '../../services/vendorOrderService'
-import { badgeClassFor } from '../../utils/badges'
+import { badgeClassFor, fulfillmentBadgeClassFor } from '../../utils/badges'
 
 export default function VendorOrdersPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [expandedId, setExpandedId] = useState(null)
+  const [updatingItemId, setUpdatingItemId] = useState(null)
 
   useEffect(() => {
     vendorOrderService
@@ -19,6 +20,20 @@ export default function VendorOrdersPage() {
 
   const toggleExpand = (id) => {
     setExpandedId((current) => (current === id ? null : id))
+  }
+
+  const handleAdvance = async (orderId, item) => {
+    const nextStatus = item.fulfillmentStatus === 'PROCESSING' ? 'SHIPPED' : 'DELIVERED'
+    setError('')
+    setUpdatingItemId(item.id)
+    try {
+      const updated = await vendorOrderService.updateItemFulfillment(orderId, item.id, nextStatus)
+      setOrders((current) => current.map((o) => (o.id === updated.id ? updated : o)))
+    } catch (err) {
+      setError(err.message || 'Failed to update item status')
+    } finally {
+      setUpdatingItemId(null)
+    }
   }
 
   return (
@@ -51,13 +66,29 @@ export default function VendorOrdersPage() {
             </button>
             {expandedId === order.id && (
               <div className="order-items">
-                {order.items.map((item, index) => (
-                  <div className="order-item" key={index}>
+                {order.items.map((item) => (
+                  <div className="order-item" key={item.id}>
                     <span>{item.productTitle}</span>
                     <span>
                       {item.quantity} &times; ${item.unitPrice.toFixed(2)}
                     </span>
                     <span>${item.lineTotal.toFixed(2)}</span>
+                    <span className={`badge ${fulfillmentBadgeClassFor(item.fulfillmentStatus)}`}>
+                      {item.fulfillmentStatus}
+                    </span>
+                    {item.fulfillmentStatus !== 'DELIVERED' && (
+                      <button
+                        type="button"
+                        disabled={updatingItemId === item.id}
+                        onClick={() => handleAdvance(order.id, item)}
+                      >
+                        {updatingItemId === item.id
+                          ? 'Updating...'
+                          : item.fulfillmentStatus === 'PROCESSING'
+                            ? 'Mark shipped'
+                            : 'Mark delivered'}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

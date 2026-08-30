@@ -12,6 +12,7 @@ import com.buildit.entity.OrderItem;
 import com.buildit.entity.Payment;
 import com.buildit.entity.Product;
 import com.buildit.entity.Vendor;
+import com.buildit.enums.ItemFulfillmentStatus;
 import com.buildit.enums.OrderStatus;
 import com.buildit.enums.PaymentStatus;
 import com.buildit.exception.BadRequestException;
@@ -581,6 +582,148 @@ class OrderServiceImplTest {
         when(orderRepository.findById(404L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> orderService.getVendorOrder(10L, 404L))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void updateItemFulfillmentStatusAdvancesProcessingToShipped() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(item));
+
+        VendorOrderResponse response =
+            orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.SHIPPED);
+
+        assertThat(item.getFulfillmentStatus()).isEqualTo(ItemFulfillmentStatus.SHIPPED);
+        assertThat(response.getItems().get(0).getFulfillmentStatus()).isEqualTo("SHIPPED");
+        verify(orderItemRepository).save(item);
+    }
+
+    @Test
+    void updateItemFulfillmentStatusAdvancesShippedToDelivered() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+        item.setFulfillmentStatus(ItemFulfillmentStatus.SHIPPED);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(item));
+
+        VendorOrderResponse response =
+            orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.DELIVERED);
+
+        assertThat(item.getFulfillmentStatus()).isEqualTo(ItemFulfillmentStatus.DELIVERED);
+        assertThat(response.getItems().get(0).getFulfillmentStatus()).isEqualTo("DELIVERED");
+    }
+
+    @Test
+    void updateItemFulfillmentStatusThrowsBadRequestWhenStatusUnchanged() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+        item.setFulfillmentStatus(ItemFulfillmentStatus.SHIPPED);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.SHIPPED))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(orderItemRepository, never()).save(any());
+    }
+
+    @Test
+    void updateItemFulfillmentStatusThrowsBadRequestWhenMovingBackward() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+        item.setFulfillmentStatus(ItemFulfillmentStatus.SHIPPED);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.PROCESSING))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(orderItemRepository, never()).save(any());
+    }
+
+    @Test
+    void updateItemFulfillmentStatusThrowsUnauthorizedWhenItemNotOwnedByVendor() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 20L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.SHIPPED))
+            .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    void updateItemFulfillmentStatusThrowsUnauthorizedWhenOrderNotYetPaid() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithIdAndStatus(100L, customer, OrderStatus.PENDING_PAYMENT);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.SHIPPED))
+            .isInstanceOf(UnauthorizedException.class)
+            .hasMessage("This order has not been paid for yet");
+    }
+
+    @Test
+    void updateItemFulfillmentStatusThrowsResourceNotFoundWhenOrderMissing() {
+        when(orderRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.updateItemFulfillmentStatus(10L, 404L, 200L, ItemFulfillmentStatus.SHIPPED))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void updateItemFulfillmentStatusThrowsResourceNotFoundWhenItemMissing() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.updateItemFulfillmentStatus(10L, 100L, 999L, ItemFulfillmentStatus.SHIPPED))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void updateItemFulfillmentStatusThrowsResourceNotFoundWhenItemBelongsToDifferentOrder() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Order otherOrder = orderWithId(999L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(otherOrder, product, 2);
+        item.setId(200L);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.SHIPPED))
             .isInstanceOf(ResourceNotFoundException.class);
     }
 }

@@ -7,3 +7,7 @@ export function listOrders() {
 export function getOrder(id) {
   return api.get(`/vendor/orders/${id}`).then((res) => res.data)
 }
+
+export function updateItemFulfillment(orderId, itemId, status) {
+  return api.patch(`/vendor/orders/${orderId}/items/${itemId}/status`, { status }).then((res) => res.data)
+}

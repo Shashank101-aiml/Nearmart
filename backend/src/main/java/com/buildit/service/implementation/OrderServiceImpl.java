@@ -9,6 +9,7 @@ import com.buildit.entity.CartItem;
 import com.buildit.entity.Order;
 import com.buildit.entity.OrderItem;
 import com.buildit.entity.Payment;
+import com.buildit.enums.ItemFulfillmentStatus;
 import com.buildit.enums.OrderStatus;
 import com.buildit.enums.PaymentStatus;
 import com.buildit.exception.BadRequestException;
@@ -253,6 +254,39 @@ public class OrderServiceImpl implements OrderService {
         return toVendorOrderResponse(order, ownedItems);
     }
 
+    @Override
+    @Transactional
+    public VendorOrderResponse updateItemFulfillmentStatus(Long vendorId, Long orderId, Long itemId,
+                                                             ItemFulfillmentStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        OrderItem item = orderItemRepository.findById(itemId)
+            .orElseThrow(() -> new ResourceNotFoundException("Order item not found"));
+
+        if (!item.getOrder().getId().equals(orderId)) {
+            throw new ResourceNotFoundException("Order item not found");
+        }
+        if (item.getProduct() == null || !item.getProduct().getVendor().getId().equals(vendorId)) {
+            throw new UnauthorizedException("You do not own this item");
+        }
+        if (order.getStatus() != OrderStatus.PLACED) {
+            throw new UnauthorizedException("This order has not been paid for yet");
+        }
+        if (newStatus.ordinal() <= item.getFulfillmentStatus().ordinal()) {
+            throw new BadRequestException(
+                "Cannot move fulfillment status from " + item.getFulfillmentStatus() + " to " + newStatus);
+        }
+
+        item.setFulfillmentStatus(newStatus);
+        orderItemRepository.save(item);
+
+        List<OrderItem> ownedItems = orderItemRepository.findByOrderId(orderId).stream()
+            .filter(i -> i.getProduct() != null && i.getProduct().getVendor().getId().equals(vendorId))
+            .toList();
+        return toVendorOrderResponse(order, ownedItems);
+    }
+
     private VendorOrderResponse toVendorOrderResponse(Order order, List<OrderItem> items) {
         List<OrderItemResponse> itemResponses = toItemResponses(items);
 
@@ -277,11 +311,13 @@ public class OrderServiceImpl implements OrderService {
     private List<OrderItemResponse> toItemResponses(List<OrderItem> items) {
         return items.stream()
             .map(item -> new OrderItemResponse(
+                item.getId(),
                 item.getProduct() != null ? item.getProduct().getId() : null,
                 item.getProductTitle(),
                 item.getUnitPrice(),
                 item.getQuantity(),
-                item.getUnitPrice() * item.getQuantity()
+                item.getUnitPrice() * item.getQuantity(),
+                item.getFulfillmentStatus().name()
             ))
             .toList();
     }
