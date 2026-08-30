@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import * as productService from '../../services/productService'
 
@@ -129,9 +130,12 @@ export default function VendorHome() {
             Signed in as <strong>{user.username}</strong> ({user.role})
           </p>
         </div>
-        <button type="button" onClick={logout}>
-          Log out
-        </button>
+        <div className="header-actions">
+          <Link to="/vendor/orders">Orders</Link>
+          <button type="button" onClick={logout}>
+            Log out
+          </button>
+        </div>
       </header>
 
       {error && <p className="auth-error">{error}</p>}

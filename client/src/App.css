@@ -258,6 +258,12 @@
   margin-right: 8px;
 }
 
+.order-card-customer {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--text);
+}
+
 .order-card > button {
   font: inherit;
   margin-top: 10px;

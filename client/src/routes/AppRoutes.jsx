@@ -8,6 +8,7 @@ import VendorStorefront from '../pages/customer/VendorStorefront'
 import CartPage from '../pages/customer/CartPage'
 import OrdersPage from '../pages/customer/OrdersPage'
 import VendorHome from '../pages/vendor/VendorHome'
+import VendorOrdersPage from '../pages/vendor/VendorOrdersPage'
 import AdminHome from '../pages/admin/AdminHome'
 
 function roleHomePath(role) {
@@ -83,6 +84,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['VENDOR']}>
             <VendorHome />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vendor/orders"
+        element={
+          <ProtectedRoute allowedRoles={['VENDOR']}>
+            <VendorOrdersPage />
           </ProtectedRoute>
         }
       />

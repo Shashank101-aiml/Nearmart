@@ -2,6 +2,7 @@ package com.buildit.service.implementation;
 
 import com.buildit.dto.response.OrderItemResponse;
 import com.buildit.dto.response.OrderResponse;
+import com.buildit.dto.response.VendorOrderResponse;
 import com.buildit.entity.Cart;
 import com.buildit.entity.CartItem;
 import com.buildit.entity.Order;
@@ -23,7 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -113,6 +118,65 @@ public class OrderServiceImpl implements OrderService {
             throw new UnauthorizedException("You do not own this order");
         }
         return toResponse(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<VendorOrderResponse> listVendorOrders(Long vendorId) {
+        List<OrderItem> items = orderItemRepository.findByProductVendorId(vendorId);
+
+        Map<Long, List<OrderItem>> byOrderId = new LinkedHashMap<>();
+        for (OrderItem item : items) {
+            byOrderId.computeIfAbsent(item.getOrder().getId(), key -> new ArrayList<>()).add(item);
+        }
+
+        List<VendorOrderResponse> responses = new ArrayList<>();
+        for (List<OrderItem> group : byOrderId.values()) {
+            responses.add(toVendorOrderResponse(group.get(0).getOrder(), group));
+        }
+
+        responses.sort(Comparator.comparing(VendorOrderResponse::getCreatedAt).reversed());
+        return responses;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public VendorOrderResponse getVendorOrder(Long vendorId, Long orderId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        List<OrderItem> ownedItems = orderItemRepository.findByOrderId(orderId).stream()
+            .filter(item -> item.getProduct() != null && item.getProduct().getVendor().getId().equals(vendorId))
+            .toList();
+
+        if (ownedItems.isEmpty()) {
+            throw new UnauthorizedException("You have no items in this order");
+        }
+
+        return toVendorOrderResponse(order, ownedItems);
+    }
+
+    private VendorOrderResponse toVendorOrderResponse(Order order, List<OrderItem> items) {
+        List<OrderItemResponse> itemResponses = items.stream()
+            .map(item -> new OrderItemResponse(
+                item.getProduct() != null ? item.getProduct().getId() : null,
+                item.getProductTitle(),
+                item.getUnitPrice(),
+                item.getQuantity(),
+                item.getUnitPrice() * item.getQuantity()
+            ))
+            .toList();
+
+        double vendorSubtotal = itemResponses.stream().mapToDouble(OrderItemResponse::getLineTotal).sum();
+
+        return new VendorOrderResponse(
+            order.getId(),
+            order.getStatus().name(),
+            order.getCreatedAt(),
+            order.getCustomer().getName(),
+            itemResponses,
+            vendorSubtotal
+        );
     }
 
     private int currentStock(Long productId) {

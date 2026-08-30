@@ -1,6 +1,7 @@
 package com.buildit.service.implementation;
 
 import com.buildit.dto.response.OrderResponse;
+import com.buildit.dto.response.VendorOrderResponse;
 import com.buildit.entity.Cart;
 import com.buildit.entity.CartItem;
 import com.buildit.entity.Customer;
@@ -8,6 +9,7 @@ import com.buildit.entity.Inventory;
 import com.buildit.entity.Order;
 import com.buildit.entity.OrderItem;
 import com.buildit.entity.Product;
+import com.buildit.entity.Vendor;
 import com.buildit.enums.OrderStatus;
 import com.buildit.exception.BadRequestException;
 import com.buildit.exception.ResourceNotFoundException;
@@ -109,6 +111,39 @@ class OrderServiceImplTest {
         order.setStatus(OrderStatus.PLACED);
         order.setCreatedAt(java.time.LocalDateTime.now());
         return order;
+    }
+
+    private Customer customerWithIdAndName(Long id, String name) {
+        Customer customer = new Customer();
+        customer.setId(id);
+        customer.setName(name);
+        return customer;
+    }
+
+    private Vendor vendorWithId(Long id) {
+        Vendor vendor = new Vendor();
+        vendor.setId(id);
+        vendor.setStoreName("Vendor " + id);
+        return vendor;
+    }
+
+    private Product productOwnedBy(Long productId, Long vendorId, double price) {
+        Product product = new Product();
+        product.setId(productId);
+        product.setTitle("Product " + productId);
+        product.setPrice(price);
+        product.setVendor(vendorWithId(vendorId));
+        return product;
+    }
+
+    private OrderItem orderItemFor(Order order, Product product, int quantity) {
+        OrderItem item = new OrderItem();
+        item.setOrder(order);
+        item.setProduct(product);
+        item.setProductTitle(product.getTitle());
+        item.setUnitPrice(product.getPrice());
+        item.setQuantity(quantity);
+        return item;
     }
 
     @Test
@@ -236,6 +271,87 @@ class OrderServiceImplTest {
         when(orderRepository.findById(404L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> orderService.getOrder(1L, 404L))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void listVendorOrdersShowsOnlyOwnItemsWhenOrderHasMultipleVendors() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product vendorAProduct = productOwnedBy(5L, 10L, 3.0);
+        Product vendorBProduct = productOwnedBy(6L, 20L, 7.0);
+        OrderItem itemA = orderItemFor(order, vendorAProduct, 2);
+        OrderItem itemB = orderItemFor(order, vendorBProduct, 1);
+
+        when(orderItemRepository.findByProductVendorId(10L)).thenReturn(List.of(itemA));
+
+        List<VendorOrderResponse> results = orderService.listVendorOrders(10L);
+
+        assertThat(results).hasSize(1);
+        VendorOrderResponse response = results.get(0);
+        assertThat(response.getId()).isEqualTo(100L);
+        assertThat(response.getCustomerName()).isEqualTo("Jane Doe");
+        assertThat(response.getItems()).hasSize(1);
+        assertThat(response.getItems().get(0).getProductId()).isEqualTo(5L);
+        assertThat(response.getVendorSubtotal()).isEqualTo(6.0);
+    }
+
+    @Test
+    void listVendorOrdersGroupsMultipleOrdersCorrectly() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order orderOne = orderWithId(100L, customer);
+        Order orderTwo = orderWithId(101L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+
+        OrderItem itemInOrderOne = orderItemFor(orderOne, product, 1);
+        OrderItem itemInOrderTwo = orderItemFor(orderTwo, product, 4);
+
+        when(orderItemRepository.findByProductVendorId(10L)).thenReturn(List.of(itemInOrderOne, itemInOrderTwo));
+
+        List<VendorOrderResponse> results = orderService.listVendorOrders(10L);
+
+        assertThat(results).hasSize(2);
+        assertThat(results).extracting(VendorOrderResponse::getId).containsExactlyInAnyOrder(100L, 101L);
+    }
+
+    @Test
+    void getVendorOrderSucceedsWhenVendorOwnsAtLeastOneItem() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product vendorAProduct = productOwnedBy(5L, 10L, 3.0);
+        Product vendorBProduct = productOwnedBy(6L, 20L, 7.0);
+        OrderItem itemA = orderItemFor(order, vendorAProduct, 2);
+        OrderItem itemB = orderItemFor(order, vendorBProduct, 1);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(itemA, itemB));
+
+        VendorOrderResponse response = orderService.getVendorOrder(10L, 100L);
+
+        assertThat(response.getItems()).hasSize(1);
+        assertThat(response.getItems().get(0).getProductId()).isEqualTo(5L);
+        assertThat(response.getVendorSubtotal()).isEqualTo(6.0);
+    }
+
+    @Test
+    void getVendorOrderThrowsUnauthorizedWhenVendorHasNoOwnedItems() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product vendorBProduct = productOwnedBy(6L, 20L, 7.0);
+        OrderItem itemB = orderItemFor(order, vendorBProduct, 1);
+
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(itemB));
+
+        assertThatThrownBy(() -> orderService.getVendorOrder(10L, 100L))
+            .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    void getVendorOrderThrowsResourceNotFoundWhenMissing() {
+        when(orderRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.getVendorOrder(10L, 404L))
             .isInstanceOf(ResourceNotFoundException.class);
     }
 }

@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("VENDOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("VENDOR")
                 .requestMatchers("/api/cart/**").hasRole("CUSTOMER")
+                .requestMatchers("/api/vendor/orders/**").hasRole("VENDOR")
                 .requestMatchers("/api/orders/**").hasRole("CUSTOMER")
                 .anyRequest().authenticated()
             )
