@@ -1,13 +1,10 @@
 package com.buildit.service;
 
-import com.buildit.repository.UserRepository;
-import org.springframework.stereotype.Service;
+import com.buildit.dto.request.LoginRequest;
+import com.buildit.dto.request.RegisterRequest;
+import com.buildit.dto.response.AuthResponse;
 
-@Service
-public class AuthService {
-    private final UserRepository userRepository;
-
-    public AuthService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+public interface AuthService {
+    AuthResponse register(RegisterRequest request);
+    AuthResponse login(LoginRequest request);
 }

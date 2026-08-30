@@ -1,5 +1,7 @@
 package com.buildit.enums;
 
-public class UserRole {
-    
+public enum UserRole {
+    CUSTOMER,
+    VENDOR,
+    ADMIN
 }

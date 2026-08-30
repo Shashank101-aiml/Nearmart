@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "jwt")
 public class JwtConfig {
-    private String secret = "superSecretKeyForJwtSigningInBuildItAppHyperlocalMarketplace";
-    private long expiration = 86400000;
+    private String secret;
+    private long expiration;
 
     public String getSecret() { return secret; }
     public void setSecret(String secret) { this.secret = secret; }
