@@ -1,13 +1,16 @@
 package com.buildit.service;
 
-import com.buildit.repository.ProductRepository;
-import org.springframework.stereotype.Service;
+import com.buildit.dto.request.ProductRequest;
+import com.buildit.dto.response.ProductResponse;
 
-@Service
-public class ProductService {
-    private final ProductRepository productRepository;
+import java.util.List;
 
-    public ProductService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
+public interface ProductService {
+    ProductResponse create(Long vendorId, ProductRequest request);
+    ProductResponse update(Long vendorId, Long productId, ProductRequest request);
+    void delete(Long vendorId, Long productId);
+    ProductResponse getById(Long productId);
+    List<ProductResponse> listAvailable();
+    List<ProductResponse> listByVendor(Long vendorId);
+    List<ProductResponse> listOwnProducts(Long vendorId);
 }

@@ -4,6 +4,7 @@ import ProtectedRoute from './ProtectedRoute'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
 import CustomerHome from '../pages/customer/CustomerHome'
+import VendorStorefront from '../pages/customer/VendorStorefront'
 import VendorHome from '../pages/vendor/VendorHome'
 import AdminHome from '../pages/admin/AdminHome'
 
@@ -48,6 +49,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['CUSTOMER']}>
             <CustomerHome />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/customer/vendors/:vendorId"
+        element={
+          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+            <VendorStorefront />
           </ProtectedRoute>
         }
       />

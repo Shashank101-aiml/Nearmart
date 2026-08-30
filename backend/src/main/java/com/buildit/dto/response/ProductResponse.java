@@ -1,41 +1,31 @@
-package com.buildit.entity;
-
-import jakarta.persistence.*;
+package com.buildit.dto.response;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ProductResponse {
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vendor_id", nullable = false)
-    private Vendor vendor;
-
     private String title;
     private String description;
     private Double price;
-
-    @Column(nullable = false)
-    private Boolean available = true;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
+    private Boolean available;
     private LocalDateTime createdAt;
+    private Long vendorId;
+    private String storeName;
 
-    @PrePersist
-    void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
+    public ProductResponse(Long id, String title, String description, Double price, Boolean available,
+                            LocalDateTime createdAt, Long vendorId, String storeName) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.price = price;
+        this.available = available;
+        this.createdAt = createdAt;
+        this.vendorId = vendorId;
+        this.storeName = storeName;
     }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Vendor getVendor() { return vendor; }
-    public void setVendor(Vendor vendor) { this.vendor = vendor; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
@@ -46,4 +36,8 @@ public class Product {
     public void setAvailable(Boolean available) { this.available = available; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Long getVendorId() { return vendorId; }
+    public void setVendorId(Long vendorId) { this.vendorId = vendorId; }
+    public String getStoreName() { return storeName; }
+    public void setStoreName(String storeName) { this.storeName = storeName; }
 }
