@@ -52,6 +52,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding bindingInventoryOrderCreated(Queue inventoryQueue, TopicExchange exchange) {
+        return BindingBuilder.bind(inventoryQueue).to(exchange).with("order.created");
+    }
+
+    @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }

@@ -1,12 +1,12 @@
 package com.buildit.repository;
 
-import com.buildit.entity.Order;
+import com.buildit.entity.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
-    List<Order> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
+public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
+    List<OrderItem> findByOrderId(Long orderId);
 }

@@ -44,6 +44,7 @@ export default function VendorStorefront() {
           {vendor?.location && <p>{vendor.location}</p>}
         </div>
         <div className="header-actions">
+          <Link to="/customer/orders">Orders</Link>
           <Link to="/customer/cart">Cart</Link>
         </div>
       </header>

@@ -43,6 +43,7 @@ export default function CustomerHome() {
           </p>
         </div>
         <div className="header-actions">
+          <Link to="/customer/orders">Orders</Link>
           <Link to="/customer/cart">Cart</Link>
           <button type="button" onClick={logout}>
             Log out

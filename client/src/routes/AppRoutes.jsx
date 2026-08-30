@@ -6,6 +6,7 @@ import RegisterPage from '../pages/auth/RegisterPage'
 import CustomerHome from '../pages/customer/CustomerHome'
 import VendorStorefront from '../pages/customer/VendorStorefront'
 import CartPage from '../pages/customer/CartPage'
+import OrdersPage from '../pages/customer/OrdersPage'
 import VendorHome from '../pages/vendor/VendorHome'
 import AdminHome from '../pages/admin/AdminHome'
 
@@ -66,6 +67,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['CUSTOMER']}>
             <CartPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/customer/orders"
+        element={
+          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+            <OrdersPage />
           </ProtectedRoute>
         }
       />

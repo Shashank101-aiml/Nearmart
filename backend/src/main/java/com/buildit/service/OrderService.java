@@ -1,13 +1,11 @@
 package com.buildit.service;
 
-import com.buildit.repository.OrderRepository;
-import org.springframework.stereotype.Service;
+import com.buildit.dto.response.OrderResponse;
 
-@Service
-public class OrderService {
-    private final OrderRepository orderRepository;
+import java.util.List;
 
-    public OrderService(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
-    }
+public interface OrderService {
+    OrderResponse placeOrder(Long customerId);
+    List<OrderResponse> listOrders(Long customerId);
+    OrderResponse getOrder(Long customerId, Long orderId);
 }

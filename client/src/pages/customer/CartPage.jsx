@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import * as cartService from '../../services/cartService'
+import * as orderService from '../../services/orderService'
 
 export default function CartPage() {
+  const navigate = useNavigate()
   const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [itemErrors, setItemErrors] = useState({})
   const [busyProductId, setBusyProductId] = useState(null)
+  const [checkingOut, setCheckingOut] = useState(false)
 
   useEffect(() => {
     cartService
@@ -39,12 +42,28 @@ export default function CartPage() {
 
   const remove = (item) => runMutation(item.productId, () => cartService.removeItem(item.productId))
 
+  const handleCheckout = async () => {
+    setError('')
+    setCheckingOut(true)
+    try {
+      await orderService.placeOrder()
+      navigate('/customer/orders')
+    } catch (err) {
+      setError(err.message || 'Checkout failed')
+    } finally {
+      setCheckingOut(false)
+    }
+  }
+
   return (
     <div className="catalog-page">
       <header className="catalog-header">
         <div>
           <Link to="/customer">&larr; Back to catalog</Link>
           <h1>Your cart</h1>
+        </div>
+        <div className="header-actions">
+          <Link to="/customer/orders">Orders</Link>
         </div>
       </header>
 
@@ -82,6 +101,9 @@ export default function CartPage() {
             <p>
               Total: <strong>${cart.total.toFixed(2)}</strong>
             </p>
+            <button type="button" onClick={handleCheckout} disabled={checkingOut}>
+              {checkingOut ? 'Placing order...' : 'Checkout'}
+            </button>
           </div>
         </>
       )}
