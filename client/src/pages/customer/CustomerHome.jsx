@@ -82,19 +82,29 @@ export default function CustomerHome() {
   }
 
   return (
-    <div className="catalog-page">
-      <header className="catalog-header">
+    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+      <header className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1>Browse products</h1>
+          <h1 className="m-0 mb-1 text-[28px] text-left">Browse products</h1>
           <p>
             Signed in as <strong>{user.username}</strong> ({user.role})
           </p>
         </div>
-        <div className="header-actions">
-          <Link to="/customer/orders">Orders</Link>
-          <Link to="/customer/notifications">Notifications</Link>
-          <Link to="/customer/cart">Cart</Link>
-          <button type="button" onClick={logout}>
+        <div className="flex items-center gap-3">
+          <Link to="/customer/orders" className="text-sm text-text-h underline">
+            Orders
+          </Link>
+          <Link to="/customer/notifications" className="text-sm text-text-h underline">
+            Notifications
+          </Link>
+          <Link to="/customer/cart" className="text-sm text-text-h underline">
+            Cart
+          </Link>
+          <button
+            type="button"
+            onClick={logout}
+            className="cursor-pointer whitespace-nowrap rounded-md border border-border bg-bg px-3.5 py-2 text-text-h"
+          >
             Log out
           </button>
         </div>
@@ -126,7 +136,7 @@ export default function CustomerHome() {
         <p>No products match your filters.</p>
       )}
 
-      <div className="product-grid">
+      <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
         {filteredProducts.map((product) => (
           <ProductCard
             key={product.id}

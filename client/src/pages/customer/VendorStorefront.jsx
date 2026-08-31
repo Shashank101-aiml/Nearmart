@@ -71,16 +71,20 @@ export default function VendorStorefront() {
   }
 
   return (
-    <div className="catalog-page">
-      <header className="catalog-header">
+    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+      <header className="mb-6 flex items-start justify-between gap-4">
         <div>
           <Link to="/customer">&larr; Back to catalog</Link>
-          {vendor && <h1>{vendor.storeName}</h1>}
+          {vendor && <h1 className="m-0 mb-1 text-[28px] text-left">{vendor.storeName}</h1>}
           {vendor?.location && <p>{vendor.location}</p>}
         </div>
-        <div className="header-actions">
-          <Link to="/customer/orders">Orders</Link>
-          <Link to="/customer/cart">Cart</Link>
+        <div className="flex items-center gap-3">
+          <Link to="/customer/orders" className="text-sm text-text-h underline">
+            Orders
+          </Link>
+          <Link to="/customer/cart" className="text-sm text-text-h underline">
+            Cart
+          </Link>
         </div>
       </header>
 
@@ -107,7 +111,7 @@ export default function VendorStorefront() {
         <p>No products match your filters.</p>
       )}
 
-      <div className="product-grid">
+      <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
         {filteredProducts.map((product) => (
           <ProductCard
             key={product.id}
