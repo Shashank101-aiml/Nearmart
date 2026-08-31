@@ -37,11 +37,11 @@ export default function VendorOrdersPage() {
   }
 
   return (
-    <div className="catalog-page">
-      <header className="catalog-header">
+    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+      <header className="mb-6 flex items-start justify-between gap-4">
         <div>
           <Link to="/vendor">&larr; Back to dashboard</Link>
-          <h1>Orders</h1>
+          <h1 className="m-0 mb-1 text-[28px] text-left">Orders</h1>
         </div>
       </header>
 
@@ -49,31 +49,38 @@ export default function VendorOrdersPage() {
       {loading && <p>Loading orders...</p>}
       {!loading && !error && orders.length === 0 && <p>No orders for your products yet.</p>}
 
-      <div className="order-list">
+      <div className="mt-4 flex flex-col gap-3">
         {orders.map((order) => (
-          <div className="order-card" key={order.id}>
-            <div className="order-card-header" onClick={() => toggleExpand(order.id)}>
+          <div className="rounded-lg border border-border p-4" key={order.id}>
+            <div
+              className="flex flex-wrap items-center justify-between gap-4 cursor-pointer"
+              onClick={() => toggleExpand(order.id)}
+            >
               <div>
-                <strong>Order #{order.id}</strong>
-                <span className={`badge ${badgeClassFor(order.status)}`}>{order.status}</span>
+                <strong className="mr-2 text-text-h">Order #{order.id}</strong>
+                <span className={badgeClassFor(order.status)}>{order.status}</span>
               </div>
               <p>{new Date(order.createdAt).toLocaleString()}</p>
-              <p className="price">${order.vendorSubtotal.toFixed(2)}</p>
+              <p>${order.vendorSubtotal.toFixed(2)}</p>
             </div>
-            <p className="order-card-customer">Customer: {order.customerName}</p>
-            <button type="button" onClick={() => toggleExpand(order.id)}>
+            <p className="mt-1.5 text-sm text-text">Customer: {order.customerName}</p>
+            <button
+              type="button"
+              onClick={() => toggleExpand(order.id)}
+              className="mt-2.5 cursor-pointer rounded-md border border-border bg-bg px-2.5 py-1.5 text-text-h"
+            >
               {expandedId === order.id ? 'Hide items' : 'Show items'}
             </button>
             {expandedId === order.id && (
-              <div className="order-items">
+              <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
                 {order.items.map((item) => (
-                  <div className="order-item" key={item.id}>
+                  <div className="flex justify-between gap-3 text-sm text-text" key={item.id}>
                     <span>{item.productTitle}</span>
                     <span>
                       {item.quantity} &times; ${item.unitPrice.toFixed(2)}
                     </span>
                     <span>${item.lineTotal.toFixed(2)}</span>
-                    <span className={`badge ${fulfillmentBadgeClassFor(item.fulfillmentStatus)}`}>
+                    <span className={fulfillmentBadgeClassFor(item.fulfillmentStatus)}>
                       {item.fulfillmentStatus}
                     </span>
                     {item.fulfillmentStatus !== 'DELIVERED' && (
