@@ -1,6 +1,7 @@
 package com.buildit.messaging.producer;
 
 import com.buildit.config.RabbitMQConfig;
+import com.buildit.messaging.events.NotificationEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +13,8 @@ public class NotificationProducer {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendNotification(String message) {
-        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, "notification.send", message);
+    public void sendNotification(Long customerId, String message) {
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, "notification.send",
+            new NotificationEvent(customerId, message));
     }
 }

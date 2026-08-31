@@ -28,6 +28,7 @@ import com.buildit.repository.OrderRepository;
 import com.buildit.repository.PaymentRepository;
 import com.buildit.service.RazorpayGateway;
 import com.buildit.service.RazorpayOrderResult;
+import com.buildit.messaging.producer.NotificationProducer;
 import com.buildit.websocket.AdminOrderPublisher;
 import com.buildit.websocket.WebSocketPublisher;
 import org.junit.jupiter.api.AfterEach;
@@ -79,6 +80,7 @@ class OrderServiceImplTest {
     @Mock private PaymentRepository paymentRepository;
     @Mock private WebSocketPublisher webSocketPublisher;
     @Mock private AdminOrderPublisher adminOrderPublisher;
+    @Mock private NotificationProducer notificationProducer;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -387,6 +389,7 @@ class OrderServiceImplTest {
         verify(orderProducer).sendOrderCreatedEvent(argThat((OrderCreatedEvent e) ->
             e.getOrderId().equals(100L) && e.getCustomerId().equals(1L)));
         verify(adminOrderPublisher).broadcastOrderStatusChange(100L, "PLACED");
+        verify(notificationProducer).sendNotification(eq(1L), anyString());
     }
 
     @Test
@@ -413,6 +416,7 @@ class OrderServiceImplTest {
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
         verify(orderProducer, never()).sendOrderCreatedEvent(any());
         verify(adminOrderPublisher).broadcastOrderStatusChange(100L, "PAYMENT_FAILED");
+        verify(notificationProducer).sendNotification(eq(1L), anyString());
     }
 
     @Test
@@ -610,6 +614,7 @@ class OrderServiceImplTest {
         assertThat(response.getItems().get(0).getFulfillmentStatus()).isEqualTo("SHIPPED");
         verify(orderItemRepository).save(item);
         verify(webSocketPublisher).notifyCustomer(eq(1L), any());
+        verify(notificationProducer).sendNotification(eq(1L), anyString());
     }
 
     @Test
@@ -631,6 +636,7 @@ class OrderServiceImplTest {
         assertThat(item.getFulfillmentStatus()).isEqualTo(ItemFulfillmentStatus.DELIVERED);
         assertThat(response.getItems().get(0).getFulfillmentStatus()).isEqualTo("DELIVERED");
         verify(webSocketPublisher).notifyCustomer(eq(1L), any());
+        verify(notificationProducer).sendNotification(eq(1L), anyString());
     }
 
     @Test

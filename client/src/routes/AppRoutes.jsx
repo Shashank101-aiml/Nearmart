@@ -7,6 +7,7 @@ import CustomerHome from '../pages/customer/CustomerHome'
 import VendorStorefront from '../pages/customer/VendorStorefront'
 import CartPage from '../pages/customer/CartPage'
 import OrdersPage from '../pages/customer/OrdersPage'
+import NotificationsPage from '../pages/customer/NotificationsPage'
 import VendorHome from '../pages/vendor/VendorHome'
 import VendorOrdersPage from '../pages/vendor/VendorOrdersPage'
 import AdminHome from '../pages/admin/AdminHome'
@@ -79,6 +80,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['CUSTOMER']}>
             <OrdersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/customer/notifications"
+        element={
+          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+            <NotificationsPage />
           </ProtectedRoute>
         }
       />

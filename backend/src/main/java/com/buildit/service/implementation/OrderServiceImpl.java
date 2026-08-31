@@ -16,6 +16,7 @@ import com.buildit.exception.BadRequestException;
 import com.buildit.exception.ResourceNotFoundException;
 import com.buildit.exception.UnauthorizedException;
 import com.buildit.messaging.events.OrderCreatedEvent;
+import com.buildit.messaging.producer.NotificationProducer;
 import com.buildit.messaging.producer.OrderProducer;
 import com.buildit.repository.CartItemRepository;
 import com.buildit.repository.CartRepository;
@@ -53,6 +54,7 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentRepository paymentRepository;
     private final WebSocketPublisher webSocketPublisher;
     private final AdminOrderPublisher adminOrderPublisher;
+    private final NotificationProducer notificationProducer;
     private final String razorpayKeyId;
 
     public OrderServiceImpl(OrderRepository orderRepository,
@@ -65,6 +67,7 @@ public class OrderServiceImpl implements OrderService {
                              PaymentRepository paymentRepository,
                              WebSocketPublisher webSocketPublisher,
                              AdminOrderPublisher adminOrderPublisher,
+                             NotificationProducer notificationProducer,
                              @Value("${razorpay.key-id}") String razorpayKeyId) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -76,6 +79,7 @@ public class OrderServiceImpl implements OrderService {
         this.paymentRepository = paymentRepository;
         this.webSocketPublisher = webSocketPublisher;
         this.adminOrderPublisher = adminOrderPublisher;
+        this.notificationProducer = notificationProducer;
         this.razorpayKeyId = razorpayKeyId;
     }
 
@@ -165,6 +169,8 @@ public class OrderServiceImpl implements OrderService {
             order.setStatus(OrderStatus.PAYMENT_FAILED);
             orderRepository.save(order);
             adminOrderPublisher.broadcastOrderStatusChange(orderId, OrderStatus.PAYMENT_FAILED.name());
+            notificationProducer.sendNotification(customerId,
+                "Payment failed for order #" + orderId + ". Please retry.");
             throw new BadRequestException("Payment verification failed");
         }
 
@@ -174,6 +180,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.PLACED);
         order = orderRepository.save(order);
         adminOrderPublisher.broadcastOrderStatusChange(orderId, OrderStatus.PLACED.name());
+        notificationProducer.sendNotification(customerId, "Your order #" + orderId + " has been placed.");
 
         // Publish only after the transaction commits — the InventoryConsumer looks up this
         // order's items by id, and if the message were published before commit, RabbitMQ could
@@ -294,6 +301,8 @@ public class OrderServiceImpl implements OrderService {
 
         webSocketPublisher.notifyCustomer(order.getCustomer().getId(),
             new TrackingUpdateMessage(orderId, itemId, newStatus.name()));
+        notificationProducer.sendNotification(order.getCustomer().getId(),
+            "Your item \"" + item.getProductTitle() + "\" is now " + newStatus + ".");
 
         List<OrderItem> ownedItems = orderItemRepository.findByOrderId(orderId).stream()
             .filter(i -> i.getProduct() != null && i.getProduct().getVendor().getId().equals(vendorId))

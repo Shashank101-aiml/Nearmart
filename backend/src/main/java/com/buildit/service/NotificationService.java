@@ -1,9 +1,10 @@
 package com.buildit.service;
 
-import org.springframework.stereotype.Service;
+import com.buildit.dto.response.NotificationResponse;
 
-@Service
-public class NotificationService {
-    public void sendNotification(String message) {
-    }
+import java.util.List;
+
+public interface NotificationService {
+    List<NotificationResponse> listForCustomer(Long customerId);
+    NotificationResponse markRead(Long customerId, Long notificationId);
 }
