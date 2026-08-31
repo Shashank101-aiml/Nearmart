@@ -3,14 +3,38 @@ import { Link } from 'react-router-dom'
 import * as orderService from '../../services/orderService'
 import * as paymentService from '../../services/paymentService'
 import { openRazorpayCheckout } from '../../utils/razorpayCheckout'
+import { connectTracking } from '../../services/trackingSocket'
 import { badgeClassFor, fulfillmentBadgeClassFor } from '../../utils/badges'
+import { useAuth } from '../../hooks/useAuth'
 
 export default function OrdersPage() {
+  const { token } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [expandedId, setExpandedId] = useState(null)
   const [retryingId, setRetryingId] = useState(null)
+
+  useEffect(() => {
+    if (!token) {
+      return undefined
+    }
+    const socket = connectTracking(token, ({ orderId, itemId, fulfillmentStatus }) => {
+      setOrders((current) =>
+        current.map((order) =>
+          order.id !== orderId
+            ? order
+            : {
+                ...order,
+                items: order.items.map((item) =>
+                  item.id !== itemId ? item : { ...item, fulfillmentStatus }
+                ),
+              }
+        )
+      )
+    })
+    return () => socket.close()
+  }, [token])
 
   const refetchOrders = () => {
     orderService

@@ -26,6 +26,8 @@ import com.buildit.repository.PaymentRepository;
 import com.buildit.service.OrderService;
 import com.buildit.service.RazorpayGateway;
 import com.buildit.service.RazorpayOrderResult;
+import com.buildit.websocket.TrackingUpdateMessage;
+import com.buildit.websocket.WebSocketPublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderProducer orderProducer;
     private final RazorpayGateway razorpayGateway;
     private final PaymentRepository paymentRepository;
+    private final WebSocketPublisher webSocketPublisher;
     private final String razorpayKeyId;
 
     public OrderServiceImpl(OrderRepository orderRepository,
@@ -58,6 +61,7 @@ public class OrderServiceImpl implements OrderService {
                              OrderProducer orderProducer,
                              RazorpayGateway razorpayGateway,
                              PaymentRepository paymentRepository,
+                             WebSocketPublisher webSocketPublisher,
                              @Value("${razorpay.key-id}") String razorpayKeyId) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -67,6 +71,7 @@ public class OrderServiceImpl implements OrderService {
         this.orderProducer = orderProducer;
         this.razorpayGateway = razorpayGateway;
         this.paymentRepository = paymentRepository;
+        this.webSocketPublisher = webSocketPublisher;
         this.razorpayKeyId = razorpayKeyId;
     }
 
@@ -280,6 +285,9 @@ public class OrderServiceImpl implements OrderService {
 
         item.setFulfillmentStatus(newStatus);
         orderItemRepository.save(item);
+
+        webSocketPublisher.notifyCustomer(order.getCustomer().getId(),
+            new TrackingUpdateMessage(orderId, itemId, newStatus.name()));
 
         List<OrderItem> ownedItems = orderItemRepository.findByOrderId(orderId).stream()
             .filter(i -> i.getProduct() != null && i.getProduct().getVendor().getId().equals(vendorId))

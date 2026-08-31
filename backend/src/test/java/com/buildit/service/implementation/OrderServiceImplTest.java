@@ -28,6 +28,7 @@ import com.buildit.repository.OrderRepository;
 import com.buildit.repository.PaymentRepository;
 import com.buildit.service.RazorpayGateway;
 import com.buildit.service.RazorpayOrderResult;
+import com.buildit.websocket.WebSocketPublisher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,6 +76,7 @@ class OrderServiceImplTest {
     @Mock private OrderProducer orderProducer;
     @Mock private RazorpayGateway razorpayGateway;
     @Mock private PaymentRepository paymentRepository;
+    @Mock private WebSocketPublisher webSocketPublisher;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -603,6 +605,7 @@ class OrderServiceImplTest {
         assertThat(item.getFulfillmentStatus()).isEqualTo(ItemFulfillmentStatus.SHIPPED);
         assertThat(response.getItems().get(0).getFulfillmentStatus()).isEqualTo("SHIPPED");
         verify(orderItemRepository).save(item);
+        verify(webSocketPublisher).notifyCustomer(eq(1L), any());
     }
 
     @Test
@@ -623,6 +626,7 @@ class OrderServiceImplTest {
 
         assertThat(item.getFulfillmentStatus()).isEqualTo(ItemFulfillmentStatus.DELIVERED);
         assertThat(response.getItems().get(0).getFulfillmentStatus()).isEqualTo("DELIVERED");
+        verify(webSocketPublisher).notifyCustomer(eq(1L), any());
     }
 
     @Test

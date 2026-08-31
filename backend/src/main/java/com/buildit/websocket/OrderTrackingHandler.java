@@ -7,23 +7,42 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class OrderTrackingHandler extends TextWebSocketHandler {
-    private final CopyOnWriteArrayList<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
+    private final Map<Long, CopyOnWriteArrayList<WebSocketSession>> sessionsByCustomerId = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        sessions.add(session);
+        Long customerId = customerIdFrom(session);
+        if (customerId == null) {
+            session.close(CloseStatus.NOT_ACCEPTABLE);
+            return;
+        }
+        sessionsByCustomerId.computeIfAbsent(customerId, id -> new CopyOnWriteArrayList<>()).add(session);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        sessions.remove(session);
+        Long customerId = customerIdFrom(session);
+        if (customerId == null) {
+            return;
+        }
+        sessionsByCustomerId.computeIfPresent(customerId, (id, sessions) -> {
+            sessions.remove(session);
+            return sessions.isEmpty() ? null : sessions;
+        });
     }
 
-    public void broadcast(String message) {
+    public void sendToCustomer(Long customerId, String message) {
+        List<WebSocketSession> sessions = sessionsByCustomerId.get(customerId);
+        if (sessions == null) {
+            return;
+        }
         for (WebSocketSession session : sessions) {
             if (session.isOpen()) {
                 try {
@@ -33,5 +52,10 @@ public class OrderTrackingHandler extends TextWebSocketHandler {
                 }
             }
         }
+    }
+
+    private Long customerIdFrom(WebSocketSession session) {
+        Object customerId = session.getAttributes().get("customerId");
+        return customerId instanceof Long ? (Long) customerId : null;
     }
 }
