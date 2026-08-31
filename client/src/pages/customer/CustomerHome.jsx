@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import * as productService from '../../services/productService'
 import * as cartService from '../../services/cartService'
 import ProductCard from '../../components/common/ProductCard'
+import { useInventorySync } from '../../hooks/useInventorySync'
 
 export default function CustomerHome() {
   const { user, logout } = useAuth()
@@ -12,6 +13,8 @@ export default function CustomerHome() {
   const [error, setError] = useState('')
   const [addingId, setAddingId] = useState(null)
   const [addErrors, setAddErrors] = useState({})
+
+  useInventorySync(setProducts)
 
   useEffect(() => {
     productService

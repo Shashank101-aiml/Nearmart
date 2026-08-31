@@ -6,6 +6,7 @@ import com.buildit.entity.Product;
 import com.buildit.messaging.events.OrderCreatedEvent;
 import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.OrderItemRepository;
+import com.buildit.websocket.InventoryPublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,6 +24,7 @@ class InventoryConsumerTest {
 
     @Mock private OrderItemRepository orderItemRepository;
     @Mock private InventoryRepository inventoryRepository;
+    @Mock private InventoryPublisher inventoryPublisher;
 
     @InjectMocks
     private InventoryConsumer inventoryConsumer;
@@ -57,6 +59,7 @@ class InventoryConsumerTest {
         inventoryConsumer.handleOrderCreated(new OrderCreatedEvent(100L, 1L));
 
         verify(inventoryRepository).save(argThat(inv -> inv.getQuantity() == 7));
+        verify(inventoryPublisher).broadcastStockUpdate(5L, 7);
     }
 
     @Test
@@ -94,5 +97,6 @@ class InventoryConsumerTest {
         inventoryConsumer.handleOrderCreated(new OrderCreatedEvent(100L, 1L));
 
         verify(inventoryRepository).save(argThat(inv -> inv.getQuantity() == 0));
+        verify(inventoryPublisher).broadcastStockUpdate(5L, 0);
     }
 }

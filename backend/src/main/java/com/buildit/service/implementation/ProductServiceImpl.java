@@ -11,6 +11,7 @@ import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.ProductRepository;
 import com.buildit.repository.VendorRepository;
 import com.buildit.service.ProductService;
+import com.buildit.websocket.InventoryPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +22,14 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final VendorRepository vendorRepository;
     private final InventoryRepository inventoryRepository;
+    private final InventoryPublisher inventoryPublisher;
 
     public ProductServiceImpl(ProductRepository productRepository, VendorRepository vendorRepository,
-                               InventoryRepository inventoryRepository) {
+                               InventoryRepository inventoryRepository, InventoryPublisher inventoryPublisher) {
         this.productRepository = productRepository;
         this.vendorRepository = vendorRepository;
         this.inventoryRepository = inventoryRepository;
+        this.inventoryPublisher = inventoryPublisher;
     }
 
     @Override
@@ -70,6 +73,7 @@ public class ProductServiceImpl implements ProductService {
         });
         inventory.setQuantity(request.getStockQuantity());
         inventoryRepository.save(inventory);
+        inventoryPublisher.broadcastStockUpdate(productId, inventory.getQuantity());
 
         return toResponse(product);
     }

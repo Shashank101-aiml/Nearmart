@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import * as productService from '../../services/productService'
 import * as cartService from '../../services/cartService'
 import ProductCard from '../../components/common/ProductCard'
+import { useInventorySync } from '../../hooks/useInventorySync'
 
 export default function VendorStorefront() {
   const { vendorId } = useParams()
@@ -12,6 +13,8 @@ export default function VendorStorefront() {
   const [loading, setLoading] = useState(true)
   const [addingId, setAddingId] = useState(null)
   const [addErrors, setAddErrors] = useState({})
+
+  useInventorySync(setProducts)
 
   useEffect(() => {
     Promise.all([productService.getVendor(vendorId), productService.listByVendor(vendorId)])

@@ -9,6 +9,7 @@ import com.buildit.exception.UnauthorizedException;
 import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.ProductRepository;
 import com.buildit.repository.VendorRepository;
+import com.buildit.websocket.InventoryPublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,6 +30,7 @@ class ProductServiceImplTest {
     @Mock private ProductRepository productRepository;
     @Mock private VendorRepository vendorRepository;
     @Mock private InventoryRepository inventoryRepository;
+    @Mock private InventoryPublisher inventoryPublisher;
 
     @InjectMocks
     private ProductServiceImpl productService;
@@ -99,6 +101,7 @@ class ProductServiceImplTest {
         ProductResponse response = productService.update(1L, 10L, request);
 
         assertThat(response.getTitle()).isEqualTo("Updated Widget");
+        verify(inventoryPublisher).broadcastStockUpdate(10L, 20);
     }
 
     @Test

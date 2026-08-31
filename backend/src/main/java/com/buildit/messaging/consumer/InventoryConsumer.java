@@ -5,6 +5,7 @@ import com.buildit.entity.OrderItem;
 import com.buildit.messaging.events.OrderCreatedEvent;
 import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.OrderItemRepository;
+import com.buildit.websocket.InventoryPublisher;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,10 +16,13 @@ import java.util.List;
 public class InventoryConsumer {
     private final OrderItemRepository orderItemRepository;
     private final InventoryRepository inventoryRepository;
+    private final InventoryPublisher inventoryPublisher;
 
-    public InventoryConsumer(OrderItemRepository orderItemRepository, InventoryRepository inventoryRepository) {
+    public InventoryConsumer(OrderItemRepository orderItemRepository, InventoryRepository inventoryRepository,
+                              InventoryPublisher inventoryPublisher) {
         this.orderItemRepository = orderItemRepository;
         this.inventoryRepository = inventoryRepository;
+        this.inventoryPublisher = inventoryPublisher;
     }
 
     /**
@@ -40,6 +44,7 @@ public class InventoryConsumer {
                 int updated = Math.max(0, inventory.getQuantity() - item.getQuantity());
                 inventory.setQuantity(updated);
                 inventoryRepository.save(inventory);
+                inventoryPublisher.broadcastStockUpdate(item.getProduct().getId(), updated);
             });
         }
     }
