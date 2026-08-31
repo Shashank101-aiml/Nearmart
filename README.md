@@ -6,7 +6,7 @@ Nearmart is a hyperlocal fullstack marketplace application featuring a modern Re
 
 ```
 Nearmart
-├── client/                               # React + Vite Frontend
+├── client/                               # React + Vite Frontend + TailWind CSS
 └── backend/                              # Spring Boot Java Backend
 ```
 
