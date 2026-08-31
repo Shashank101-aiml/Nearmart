@@ -7,6 +7,8 @@ import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.websocket.InventoryPublisher;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,12 +19,14 @@ public class InventoryConsumer {
     private final OrderItemRepository orderItemRepository;
     private final InventoryRepository inventoryRepository;
     private final InventoryPublisher inventoryPublisher;
+    private final CacheManager cacheManager;
 
     public InventoryConsumer(OrderItemRepository orderItemRepository, InventoryRepository inventoryRepository,
-                              InventoryPublisher inventoryPublisher) {
+                              InventoryPublisher inventoryPublisher, CacheManager cacheManager) {
         this.orderItemRepository = orderItemRepository;
         this.inventoryRepository = inventoryRepository;
         this.inventoryPublisher = inventoryPublisher;
+        this.cacheManager = cacheManager;
     }
 
     /**
@@ -46,6 +50,11 @@ public class InventoryConsumer {
                 inventoryRepository.save(inventory);
                 inventoryPublisher.broadcastStockUpdate(item.getProduct().getId(), updated);
             });
+        }
+
+        Cache cache = cacheManager.getCache("products");
+        if (cache != null) {
+            cache.clear();
         }
     }
 }

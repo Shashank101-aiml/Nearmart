@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.CacheManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,7 @@ class InventoryConsumerTest {
     @Mock private OrderItemRepository orderItemRepository;
     @Mock private InventoryRepository inventoryRepository;
     @Mock private InventoryPublisher inventoryPublisher;
+    @Mock private CacheManager cacheManager;
 
     @InjectMocks
     private InventoryConsumer inventoryConsumer;

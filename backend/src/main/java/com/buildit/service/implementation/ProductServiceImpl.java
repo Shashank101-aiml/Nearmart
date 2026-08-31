@@ -12,6 +12,8 @@ import com.buildit.repository.ProductRepository;
 import com.buildit.repository.VendorRepository;
 import com.buildit.service.ProductService;
 import com.buildit.websocket.InventoryPublisher;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse create(Long vendorId, ProductRequest request) {
         Vendor vendor = vendorRepository.findById(vendorId)
             .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
@@ -56,6 +59,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse update(Long vendorId, Long productId, ProductRequest request) {
         Product product = findOwnedProduct(vendorId, productId);
         product.setTitle(request.getTitle());
@@ -80,6 +84,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void delete(Long vendorId, Long productId) {
         Product product = findOwnedProduct(vendorId, productId);
         productRepository.delete(product);
@@ -92,11 +97,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(value = "products", key = "'all'")
     public List<ProductResponse> listAvailable() {
         return productRepository.findByAvailableTrue().stream().map(this::toResponse).toList();
     }
 
     @Override
+    @Cacheable(value = "products", key = "'vendor:' + #vendorId")
     public List<ProductResponse> listByVendor(Long vendorId) {
         return productRepository.findByVendorIdAndAvailableTrue(vendorId).stream().map(this::toResponse).toList();
     }
@@ -108,6 +115,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse setAvailability(Long productId, boolean available) {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
