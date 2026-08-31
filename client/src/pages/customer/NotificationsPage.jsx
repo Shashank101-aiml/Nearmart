@@ -28,11 +28,11 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="catalog-page">
-      <header className="catalog-header">
+    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+      <header className="mb-6 flex items-start justify-between gap-4">
         <div>
           <Link to="/customer">&larr; Back to catalog</Link>
-          <h1>Notifications</h1>
+          <h1 className="m-0 mb-1 text-[28px] text-left">Notifications</h1>
         </div>
       </header>
 
@@ -40,18 +40,20 @@ export default function NotificationsPage() {
       {loading && <p>Loading notifications...</p>}
       {!loading && !error && notifications.length === 0 && <p>You have no notifications yet.</p>}
 
-      <div className="order-list">
+      <div className="mt-4 flex flex-col gap-3">
         {notifications.map((notification) => (
           <div
-            className="order-card"
+            className="rounded-lg border border-border p-4"
             key={notification.id}
             onClick={() => handleMarkRead(notification)}
             style={{ opacity: notification.read ? 0.6 : 1, cursor: notification.read ? 'default' : 'pointer' }}
           >
-            <div className="order-card-header">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <strong>{notification.message}</strong>
-                {!notification.read && <span className="badge badge-pending">New</span>}
+                <strong className="mr-2 text-text-h">{notification.message}</strong>
+                {!notification.read && (
+                  <span className="rounded-full bg-code-bg px-2 py-0.5 text-xs text-text">New</span>
+                )}
               </div>
               <p>{new Date(notification.createdAt).toLocaleString()}</p>
             </div>

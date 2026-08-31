@@ -121,18 +121,31 @@ export default function VendorHome() {
     }
   }
 
+  const labelClasses = 'flex flex-col gap-1.5 text-sm text-text-h'
+  const fieldClasses = 'resize-y rounded-md border border-border bg-bg px-3 py-2.5 text-text-h'
+  const checkboxLabelClasses = 'flex flex-row items-center gap-2 text-sm text-text-h'
+  const submitButtonClasses =
+    'self-start cursor-pointer rounded-md border-none bg-accent px-4 py-2.5 text-white disabled:cursor-not-allowed disabled:opacity-60'
+  const cardButtonClasses = 'cursor-pointer rounded-md border border-border bg-bg px-2.5 py-1.5 text-text-h'
+
   return (
-    <div className="catalog-page">
-      <header className="catalog-header">
+    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+      <header className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1>Vendor Dashboard</h1>
+          <h1 className="m-0 mb-1 text-[28px] text-left">Vendor Dashboard</h1>
           <p>
             Signed in as <strong>{user.username}</strong> ({user.role})
           </p>
         </div>
-        <div className="header-actions">
-          <Link to="/vendor/orders">Orders</Link>
-          <button type="button" onClick={logout}>
+        <div className="flex items-center gap-3">
+          <Link to="/vendor/orders" className="text-sm text-text-h underline">
+            Orders
+          </Link>
+          <button
+            type="button"
+            onClick={logout}
+            className="cursor-pointer whitespace-nowrap rounded-md border border-border bg-bg px-3.5 py-2 text-text-h"
+          >
             Log out
           </button>
         </div>
@@ -140,18 +153,29 @@ export default function VendorHome() {
 
       {error && <p className="auth-error">{error}</p>}
 
-      <section className="product-form-section">
+      <section className="mb-8">
         <h2>Add a product</h2>
-        <form onSubmit={handleCreateSubmit} className="product-form">
-          <label>
+        <form onSubmit={handleCreateSubmit} className="flex max-w-[420px] flex-col gap-3 text-left">
+          <label className={labelClasses}>
             Title
-            <input name="title" value={createForm.title} onChange={handleCreateChange} required />
+            <input
+              name="title"
+              value={createForm.title}
+              onChange={handleCreateChange}
+              required
+              className={fieldClasses}
+            />
           </label>
-          <label>
+          <label className={labelClasses}>
             Description
-            <textarea name="description" value={createForm.description} onChange={handleCreateChange} />
+            <textarea
+              name="description"
+              value={createForm.description}
+              onChange={handleCreateChange}
+              className={fieldClasses}
+            />
           </label>
-          <label>
+          <label className={labelClasses}>
             Price
             <input
               name="price"
@@ -161,9 +185,10 @@ export default function VendorHome() {
               value={createForm.price}
               onChange={handleCreateChange}
               required
+              className={fieldClasses}
             />
           </label>
-          <label>
+          <label className={labelClasses}>
             Stock
             <input
               name="stockQuantity"
@@ -173,9 +198,10 @@ export default function VendorHome() {
               value={createForm.stockQuantity}
               onChange={handleCreateChange}
               required
+              className={fieldClasses}
             />
           </label>
-          <label className="checkbox-label">
+          <label className={checkboxLabelClasses}>
             <input
               name="available"
               type="checkbox"
@@ -184,7 +210,7 @@ export default function VendorHome() {
             />
             Available
           </label>
-          <button type="submit" disabled={creating}>
+          <button type="submit" disabled={creating} className={submitButtonClasses}>
             {creating ? 'Adding...' : 'Add product'}
           </button>
         </form>
@@ -195,23 +221,34 @@ export default function VendorHome() {
         {loading && <p>Loading products...</p>}
         {!loading && products.length === 0 && <p>You haven't added any products yet.</p>}
 
-        <div className="product-grid">
+        <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
           {products.map((product) =>
             editingId === product.id ? (
               <form
                 key={product.id}
-                className="product-card product-form"
+                className="flex flex-col gap-3 rounded-lg border border-border bg-bg p-4 text-left"
                 onSubmit={(e) => handleEditSubmit(e, product.id)}
               >
-                <label>
+                <label className={labelClasses}>
                   Title
-                  <input name="title" value={editForm.title} onChange={handleEditChange} required />
+                  <input
+                    name="title"
+                    value={editForm.title}
+                    onChange={handleEditChange}
+                    required
+                    className={fieldClasses}
+                  />
                 </label>
-                <label>
+                <label className={labelClasses}>
                   Description
-                  <textarea name="description" value={editForm.description} onChange={handleEditChange} />
+                  <textarea
+                    name="description"
+                    value={editForm.description}
+                    onChange={handleEditChange}
+                    className={fieldClasses}
+                  />
                 </label>
-                <label>
+                <label className={labelClasses}>
                   Price
                   <input
                     name="price"
@@ -221,9 +258,10 @@ export default function VendorHome() {
                     value={editForm.price}
                     onChange={handleEditChange}
                     required
+                    className={fieldClasses}
                   />
                 </label>
-                <label>
+                <label className={labelClasses}>
                   Stock
                   <input
                     name="stockQuantity"
@@ -233,9 +271,10 @@ export default function VendorHome() {
                     value={editForm.stockQuantity}
                     onChange={handleEditChange}
                     required
+                    className={fieldClasses}
                   />
                 </label>
-                <label className="checkbox-label">
+                <label className={checkboxLabelClasses}>
                   <input
                     name="available"
                     type="checkbox"
@@ -244,8 +283,8 @@ export default function VendorHome() {
                   />
                   Available
                 </label>
-                <div className="product-actions">
-                  <button type="submit" disabled={saving}>
+                <div className="flex flex-wrap gap-2">
+                  <button type="submit" disabled={saving} className={submitButtonClasses}>
                     {saving ? 'Saving...' : 'Save'}
                   </button>
                   <button type="button" onClick={cancelEdit}>
@@ -254,22 +293,30 @@ export default function VendorHome() {
                 </div>
               </form>
             ) : (
-              <div className="product-card" key={product.id}>
-                <h3>{product.title}</h3>
-                <p className="price">${product.price.toFixed(2)}</p>
-                {product.description && <p className="description">{product.description}</p>}
+              <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-bg p-4" key={product.id}>
+                <h3 className="m-0 text-lg text-text-h">{product.title}</h3>
+                <p className="font-semibold text-accent">${product.price.toFixed(2)}</p>
+                {product.description && <p className="text-sm text-text">{product.description}</p>}
                 <p>Stock: {product.stockQuantity}</p>
-                <p className={product.available ? 'badge badge-available' : 'badge badge-hidden'}>
+                <p
+                  className={`self-start rounded-full px-2 py-0.5 text-xs ${
+                    product.available ? 'bg-accent-bg text-accent' : 'bg-code-bg text-text'
+                  }`}
+                >
                   {product.available ? 'Available' : 'Hidden'}
                 </p>
-                <div className="product-actions">
-                  <button type="button" onClick={() => startEdit(product)}>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => startEdit(product)} className={cardButtonClasses}>
                     Edit
                   </button>
-                  <button type="button" onClick={() => handleToggleAvailable(product)}>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleAvailable(product)}
+                    className={cardButtonClasses}
+                  >
                     {product.available ? 'Hide' : 'Unhide'}
                   </button>
-                  <button type="button" onClick={() => handleDelete(product.id)}>
+                  <button type="button" onClick={() => handleDelete(product.id)} className={cardButtonClasses}>
                     Delete
                   </button>
                 </div>
