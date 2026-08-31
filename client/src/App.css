@@ -292,6 +292,64 @@
   color: var(--text);
 }
 
+.product-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.product-filters input[type='text'],
+.product-filters input[type='number'],
+.product-filters select {
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.product-filters input[type='text'] {
+  flex: 1;
+  min-width: 160px;
+}
+
+.product-filters input[type='number'] {
+  width: 100px;
+}
+
+.product-filters .price-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+
+.product-filters .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-h);
+  white-space: nowrap;
+}
+
+.product-filters button {
+  font: inherit;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

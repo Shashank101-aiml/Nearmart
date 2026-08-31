@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import * as productService from '../../services/productService'
 import * as cartService from '../../services/cartService'
 import ProductCard from '../../components/common/ProductCard'
+import ProductFilters from '../../components/common/ProductFilters'
 import { useInventorySync } from '../../hooks/useInventorySync'
 
 export default function CustomerHome() {
@@ -14,6 +15,12 @@ export default function CustomerHome() {
   const [addingId, setAddingId] = useState(null)
   const [addErrors, setAddErrors] = useState({})
 
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedVendorId, setSelectedVendorId] = useState('')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [inStockOnly, setInStockOnly] = useState(false)
+
   useInventorySync(setProducts)
 
   useEffect(() => {
@@ -23,6 +30,44 @@ export default function CustomerHome() {
       .catch((err) => setError(err.message || 'Failed to load products'))
       .finally(() => setLoading(false))
   }, [])
+
+  const vendorOptions = useMemo(() => {
+    const seen = new Map()
+    for (const product of products) {
+      if (product.vendorId && !seen.has(product.vendorId)) {
+        seen.set(product.vendorId, product.storeName)
+      }
+    }
+    return Array.from(seen.entries()).map(([id, name]) => ({ id, name }))
+  }, [products])
+
+  const hasActiveFilters = Boolean(searchTerm || selectedVendorId || minPrice || maxPrice || inStockOnly)
+
+  const filteredProducts = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase()
+    const min = minPrice === '' ? null : Number(minPrice)
+    const max = maxPrice === '' ? null : Number(maxPrice)
+
+    return products.filter((product) => {
+      if (term) {
+        const haystack = `${product.title} ${product.description || ''}`.toLowerCase()
+        if (!haystack.includes(term)) return false
+      }
+      if (selectedVendorId && String(product.vendorId) !== String(selectedVendorId)) return false
+      if (min !== null && product.price < min) return false
+      if (max !== null && product.price > max) return false
+      if (inStockOnly && !(product.stockQuantity > 0)) return false
+      return true
+    })
+  }, [products, searchTerm, selectedVendorId, minPrice, maxPrice, inStockOnly])
+
+  const clearFilters = () => {
+    setSearchTerm('')
+    setSelectedVendorId('')
+    setMinPrice('')
+    setMaxPrice('')
+    setInStockOnly(false)
+  }
 
   const handleAddToCart = async (product) => {
     setAddingId(product.id)
@@ -59,8 +104,30 @@ export default function CustomerHome() {
       {loading && <p>Loading products...</p>}
       {!loading && !error && products.length === 0 && <p>No products available yet.</p>}
 
+      {!loading && !error && products.length > 0 && (
+        <ProductFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          vendorOptions={vendorOptions}
+          selectedVendorId={selectedVendorId}
+          onVendorChange={setSelectedVendorId}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          onMinPriceChange={setMinPrice}
+          onMaxPriceChange={setMaxPrice}
+          inStockOnly={inStockOnly}
+          onInStockOnlyChange={setInStockOnly}
+          onClear={clearFilters}
+          hasActiveFilters={hasActiveFilters}
+        />
+      )}
+
+      {!loading && !error && products.length > 0 && filteredProducts.length === 0 && (
+        <p>No products match your filters.</p>
+      )}
+
       <div className="product-grid">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
