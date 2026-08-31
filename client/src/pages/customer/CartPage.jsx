@@ -57,14 +57,16 @@ export default function CartPage() {
   }
 
   return (
-    <div className="catalog-page">
-      <header className="catalog-header">
+    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+      <header className="mb-6 flex items-start justify-between gap-4">
         <div>
           <Link to="/customer">&larr; Back to catalog</Link>
-          <h1>Your cart</h1>
+          <h1 className="m-0 mb-1 text-[28px] text-left">Your cart</h1>
         </div>
-        <div className="header-actions">
-          <Link to="/customer/orders">Orders</Link>
+        <div className="flex items-center gap-3">
+          <Link to="/customer/orders" className="text-sm text-text-h underline">
+            Orders
+          </Link>
         </div>
       </header>
 
@@ -74,35 +76,58 @@ export default function CartPage() {
 
       {!loading && !error && cart?.items.length > 0 && (
         <>
-          <div className="cart-items">
+          <div className="mt-4 flex flex-col gap-3">
             {cart.items.map((item) => (
-              <div className="cart-item" key={item.productId}>
-                <div className="cart-item-info">
-                  <h3>{item.productTitle}</h3>
-                  <p className="price">${item.price.toFixed(2)} each</p>
+              <div
+                className="flex flex-wrap items-center gap-4 rounded-lg border border-border px-4 py-3"
+                key={item.productId}
+              >
+                <div className="min-w-40 flex-1">
+                  <h3 className="m-0 mb-1 text-base text-text-h">{item.productTitle}</h3>
+                  <p>${item.price.toFixed(2)} each</p>
                 </div>
-                <div className="cart-item-controls">
-                  <button type="button" onClick={() => decrement(item)} disabled={busyProductId === item.productId}>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => decrement(item)}
+                    disabled={busyProductId === item.productId}
+                    className="size-7 cursor-pointer rounded-md border border-border bg-bg text-text-h"
+                  >
                     -
                   </button>
                   <span>{item.quantity}</span>
-                  <button type="button" onClick={() => increment(item)} disabled={busyProductId === item.productId}>
+                  <button
+                    type="button"
+                    onClick={() => increment(item)}
+                    disabled={busyProductId === item.productId}
+                    className="size-7 cursor-pointer rounded-md border border-border bg-bg text-text-h"
+                  >
                     +
                   </button>
                 </div>
-                <p className="line-total">${item.lineTotal.toFixed(2)}</p>
-                <button type="button" onClick={() => remove(item)} disabled={busyProductId === item.productId}>
+                <p className="min-w-[70px] text-right font-semibold text-accent">${item.lineTotal.toFixed(2)}</p>
+                <button
+                  type="button"
+                  onClick={() => remove(item)}
+                  disabled={busyProductId === item.productId}
+                  className="cursor-pointer rounded-md border border-border bg-bg px-2.5 py-1.5 text-text-h"
+                >
                   Remove
                 </button>
                 {itemErrors[item.productId] && <p className="field-error">{itemErrors[item.productId]}</p>}
               </div>
             ))}
           </div>
-          <div className="cart-summary">
+          <div className="mt-5 flex items-center justify-end gap-4 border-t border-border pt-4 text-right text-lg">
             <p>
               Total: <strong>${cart.total.toFixed(2)}</strong>
             </p>
-            <button type="button" onClick={handleCheckout} disabled={checkingOut}>
+            <button
+              type="button"
+              onClick={handleCheckout}
+              disabled={checkingOut}
+              className="cursor-pointer rounded-md border-none bg-accent px-5 py-2.5 text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
               {checkingOut ? 'Placing order...' : 'Checkout'}
             </button>
           </div>
