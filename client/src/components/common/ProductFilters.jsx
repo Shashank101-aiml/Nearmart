@@ -23,14 +23,16 @@ export default function ProductFilters({
         aria-label="Search products"
       />
 
-      <select value={selectedVendorId} onChange={(e) => onVendorChange(e.target.value)} aria-label="Filter by vendor">
-        <option value="">All vendors</option>
-        {vendorOptions.map((vendor) => (
-          <option key={vendor.id} value={vendor.id}>
-            {vendor.name}
-          </option>
-        ))}
-      </select>
+      {vendorOptions && (
+        <select value={selectedVendorId} onChange={(e) => onVendorChange(e.target.value)} aria-label="Filter by vendor">
+          <option value="">All vendors</option>
+          {vendorOptions.map((vendor) => (
+            <option key={vendor.id} value={vendor.id}>
+              {vendor.name}
+            </option>
+          ))}
+        </select>
+      )}
 
       <div className="price-range">
         <input
