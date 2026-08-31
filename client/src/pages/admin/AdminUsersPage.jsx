@@ -37,11 +37,11 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="catalog-page">
-      <header className="catalog-header">
+    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+      <header className="mb-6 flex items-start justify-between gap-4">
         <div>
           <Link to="/admin">&larr; Back to dashboard</Link>
-          <h1>Users</h1>
+          <h1 className="m-0 mb-1 text-[28px] text-left">Users</h1>
         </div>
       </header>
 
@@ -49,15 +49,19 @@ export default function AdminUsersPage() {
       {loading && <p>Loading users...</p>}
       {!loading && users.length === 0 && <p>No users found.</p>}
 
-      <div className="product-grid">
+      <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
         {users.map((u) => {
           const isSelf = u.id === currentUser.userId
           return (
-            <div className="product-card" key={u.id}>
-              <h3>{u.username}</h3>
-              <p className="description">{u.email}</p>
+            <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-bg p-4" key={u.id}>
+              <h3 className="m-0 text-lg text-text-h">{u.username}</h3>
+              <p className="text-sm text-text">{u.email}</p>
               <p>Role: {u.role}</p>
-              <p className={u.enabled ? 'badge badge-available' : 'badge badge-hidden'}>
+              <p
+                className={`self-start rounded-full px-2 py-0.5 text-xs ${
+                  u.enabled ? 'bg-accent-bg text-accent' : 'bg-code-bg text-text'
+                }`}
+              >
                 {u.enabled ? 'Enabled' : 'Disabled'}
               </p>
               <button
@@ -65,6 +69,7 @@ export default function AdminUsersPage() {
                 onClick={() => handleToggle(u)}
                 disabled={busyId === u.id || isSelf}
                 title={isSelf ? 'You cannot disable your own account' : undefined}
+                className="self-start cursor-pointer rounded-md border border-border bg-bg px-2.5 py-1.5 text-text-h"
               >
                 {busyId === u.id ? 'Saving...' : u.enabled ? 'Disable' : 'Enable'}
               </button>
