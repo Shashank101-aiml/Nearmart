@@ -26,6 +26,7 @@ import com.buildit.repository.PaymentRepository;
 import com.buildit.service.OrderService;
 import com.buildit.service.RazorpayGateway;
 import com.buildit.service.RazorpayOrderResult;
+import com.buildit.websocket.AdminOrderPublisher;
 import com.buildit.websocket.TrackingUpdateMessage;
 import com.buildit.websocket.WebSocketPublisher;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +52,7 @@ public class OrderServiceImpl implements OrderService {
     private final RazorpayGateway razorpayGateway;
     private final PaymentRepository paymentRepository;
     private final WebSocketPublisher webSocketPublisher;
+    private final AdminOrderPublisher adminOrderPublisher;
     private final String razorpayKeyId;
 
     public OrderServiceImpl(OrderRepository orderRepository,
@@ -62,6 +64,7 @@ public class OrderServiceImpl implements OrderService {
                              RazorpayGateway razorpayGateway,
                              PaymentRepository paymentRepository,
                              WebSocketPublisher webSocketPublisher,
+                             AdminOrderPublisher adminOrderPublisher,
                              @Value("${razorpay.key-id}") String razorpayKeyId) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -72,6 +75,7 @@ public class OrderServiceImpl implements OrderService {
         this.razorpayGateway = razorpayGateway;
         this.paymentRepository = paymentRepository;
         this.webSocketPublisher = webSocketPublisher;
+        this.adminOrderPublisher = adminOrderPublisher;
         this.razorpayKeyId = razorpayKeyId;
     }
 
@@ -160,6 +164,7 @@ public class OrderServiceImpl implements OrderService {
             paymentRepository.save(payment);
             order.setStatus(OrderStatus.PAYMENT_FAILED);
             orderRepository.save(order);
+            adminOrderPublisher.broadcastOrderStatusChange(orderId, OrderStatus.PAYMENT_FAILED.name());
             throw new BadRequestException("Payment verification failed");
         }
 
@@ -168,6 +173,7 @@ public class OrderServiceImpl implements OrderService {
         paymentRepository.save(payment);
         order.setStatus(OrderStatus.PLACED);
         order = orderRepository.save(order);
+        adminOrderPublisher.broadcastOrderStatusChange(orderId, OrderStatus.PLACED.name());
 
         // Publish only after the transaction commits — the InventoryConsumer looks up this
         // order's items by id, and if the message were published before commit, RabbitMQ could

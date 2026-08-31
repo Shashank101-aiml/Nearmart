@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import * as adminService from '../../services/adminService'
+import { connectAdminOrders } from '../../services/adminOrderSocket'
 import { badgeClassFor, fulfillmentBadgeClassFor } from '../../utils/badges'
+import { useAuth } from '../../hooks/useAuth'
 
 function groupByVendor(items) {
   const groups = new Map()
@@ -16,6 +18,7 @@ function groupByVendor(items) {
 }
 
 export default function AdminOrdersPage() {
+  const { token } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -30,6 +33,16 @@ export default function AdminOrdersPage() {
       .catch((err) => setError(err.message || 'Failed to load orders'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!token) {
+      return undefined
+    }
+    const socket = connectAdminOrders(token, ({ orderId, status }) => {
+      setOrders((current) => current.map((order) => (order.id !== orderId ? order : { ...order, status })))
+    })
+    return () => socket.close()
+  }, [token])
 
   const toggleExpand = (order) => {
     const nextId = expandedId === order.id ? null : order.id

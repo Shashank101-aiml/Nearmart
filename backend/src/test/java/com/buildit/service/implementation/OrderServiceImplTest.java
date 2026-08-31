@@ -28,6 +28,7 @@ import com.buildit.repository.OrderRepository;
 import com.buildit.repository.PaymentRepository;
 import com.buildit.service.RazorpayGateway;
 import com.buildit.service.RazorpayOrderResult;
+import com.buildit.websocket.AdminOrderPublisher;
 import com.buildit.websocket.WebSocketPublisher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,6 +78,7 @@ class OrderServiceImplTest {
     @Mock private RazorpayGateway razorpayGateway;
     @Mock private PaymentRepository paymentRepository;
     @Mock private WebSocketPublisher webSocketPublisher;
+    @Mock private AdminOrderPublisher adminOrderPublisher;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -384,6 +386,7 @@ class OrderServiceImplTest {
         }
         verify(orderProducer).sendOrderCreatedEvent(argThat((OrderCreatedEvent e) ->
             e.getOrderId().equals(100L) && e.getCustomerId().equals(1L)));
+        verify(adminOrderPublisher).broadcastOrderStatusChange(100L, "PLACED");
     }
 
     @Test
@@ -409,6 +412,7 @@ class OrderServiceImplTest {
         assertThat(order.getStatus()).isEqualTo(OrderStatus.PAYMENT_FAILED);
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
         verify(orderProducer, never()).sendOrderCreatedEvent(any());
+        verify(adminOrderPublisher).broadcastOrderStatusChange(100L, "PAYMENT_FAILED");
     }
 
     @Test
