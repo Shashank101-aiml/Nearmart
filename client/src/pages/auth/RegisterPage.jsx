@@ -65,45 +65,63 @@ export default function RegisterPage() {
     }
   }
 
-  return (
-    <div className="auth-page">
-      <form onSubmit={handleSubmit} className="auth-form">
-        <h1>Register</h1>
-        {error && <p className="auth-error">{error}</p>}
+  const fieldClasses =
+    'rounded-md border border-border bg-bg px-3 py-2.5 text-text-h focus:outline-2 focus:outline-offset-1 focus:outline-accent'
+  const labelClasses = 'flex flex-col gap-1.5 text-sm text-text-h'
+  const fieldErrorClasses = '-mt-2 text-xs text-red-600'
 
-        <label>
+  return (
+    <div className="flex flex-1 items-center justify-center px-4 py-8">
+      <form onSubmit={handleSubmit} className="flex w-full max-w-[380px] flex-col gap-3.5 text-left">
+        <h1 className="m-0 mb-2 text-[32px] text-center">Register</h1>
+        {error && <p className="mb-1 text-sm text-red-600">{error}</p>}
+
+        <label className={labelClasses}>
           I am a
-          <select name="role" value={form.role} onChange={handleChange}>
+          <select name="role" value={form.role} onChange={handleChange} className={fieldClasses}>
             <option value="CUSTOMER">Customer</option>
             <option value="VENDOR">Vendor</option>
           </select>
         </label>
 
-        <label>
+        <label className={labelClasses}>
           Username
-          <input name="username" value={form.username} onChange={handleChange} autoComplete="username" />
+          <input
+            name="username"
+            value={form.username}
+            onChange={handleChange}
+            autoComplete="username"
+            className={fieldClasses}
+          />
         </label>
-        {fieldErrors.username && <p className="field-error">{fieldErrors.username}</p>}
+        {fieldErrors.username && <p className={fieldErrorClasses}>{fieldErrors.username}</p>}
 
-        <label>
+        <label className={labelClasses}>
           Email
-          <input name="email" type="email" value={form.email} onChange={handleChange} autoComplete="email" />
+          <input
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            autoComplete="email"
+            className={fieldClasses}
+          />
         </label>
-        {fieldErrors.email && <p className="field-error">{fieldErrors.email}</p>}
+        {fieldErrors.email && <p className={fieldErrorClasses}>{fieldErrors.email}</p>}
 
-        <label>
+        <label className={labelClasses}>
           {form.role === 'VENDOR' ? 'Store name' : 'Full name'}
-          <input name="displayName" value={form.displayName} onChange={handleChange} />
+          <input name="displayName" value={form.displayName} onChange={handleChange} className={fieldClasses} />
         </label>
-        {fieldErrors.displayName && <p className="field-error">{fieldErrors.displayName}</p>}
+        {fieldErrors.displayName && <p className={fieldErrorClasses}>{fieldErrors.displayName}</p>}
 
-        <label>
+        <label className={labelClasses}>
           Address
-          <input name="address" value={form.address} onChange={handleChange} />
+          <input name="address" value={form.address} onChange={handleChange} className={fieldClasses} />
         </label>
-        {fieldErrors.address && <p className="field-error">{fieldErrors.address}</p>}
+        {fieldErrors.address && <p className={fieldErrorClasses}>{fieldErrors.address}</p>}
 
-        <label>
+        <label className={labelClasses}>
           Password
           <input
             name="password"
@@ -111,11 +129,12 @@ export default function RegisterPage() {
             value={form.password}
             onChange={handleChange}
             autoComplete="new-password"
+            className={fieldClasses}
           />
         </label>
-        {fieldErrors.password && <p className="field-error">{fieldErrors.password}</p>}
+        {fieldErrors.password && <p className={fieldErrorClasses}>{fieldErrors.password}</p>}
 
-        <label>
+        <label className={labelClasses}>
           Confirm password
           <input
             name="confirmPassword"
@@ -123,14 +142,19 @@ export default function RegisterPage() {
             value={form.confirmPassword}
             onChange={handleChange}
             autoComplete="new-password"
+            className={fieldClasses}
           />
         </label>
-        {fieldErrors.confirmPassword && <p className="field-error">{fieldErrors.confirmPassword}</p>}
+        {fieldErrors.confirmPassword && <p className={fieldErrorClasses}>{fieldErrors.confirmPassword}</p>}
 
-        <button type="submit" disabled={submitting}>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="mt-1.5 cursor-pointer rounded-md border-none bg-accent px-4 py-2.5 text-white disabled:cursor-not-allowed disabled:opacity-60"
+        >
           {submitting ? 'Creating account...' : 'Register'}
         </button>
-        <p>
+        <p className="text-center text-sm">
           Already have an account? <Link to="/login">Log in</Link>
         </p>
       </form>
