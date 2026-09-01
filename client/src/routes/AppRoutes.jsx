@@ -14,6 +14,7 @@ import AdminHome from '../pages/admin/AdminHome'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminVendorsPage from '../pages/admin/AdminVendorsPage'
 import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
+import ComponentPreviewPage from '../pages/dev/ComponentPreviewPage'
 
 function roleHomePath(role) {
   return `/${role.toLowerCase()}`
@@ -139,6 +140,7 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/dev/component-preview" element={<ComponentPreviewPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
