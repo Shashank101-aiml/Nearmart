@@ -1,9 +1,22 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import DiscountBadge from './DiscountBadge'
 import PriceDisplay from './PriceDisplay'
 import AddToCartControl from './AddToCartControl'
 
-export default function ProductCardV2({ product, quantityInCart = 0, onAdd, onIncrement, onDecrement, showStoreLink = false }) {
+export default function ProductCardV2({
+  product,
+  quantityInCart = 0,
+  onAdd,
+  onIncrement,
+  onDecrement,
+  showStoreLink = false,
+  description,
+  error,
+  disabled = false,
+}) {
+  const [expanded, setExpanded] = useState(false)
+
   const outOfStock = !product.stockQuantity || product.stockQuantity <= 0
   const discountPercent = product.mrp && product.mrp > product.price
     ? ((product.mrp - product.price) / product.mrp) * 100
@@ -33,6 +46,19 @@ export default function ProductCardV2({ product, quantityInCart = 0, onAdd, onIn
         </Link>
       )}
 
+      {description && (
+        <>
+          <p className={`text-xs text-text ${expanded ? '' : 'line-clamp-2'}`}>{description}</p>
+          <button
+            type="button"
+            onClick={() => setExpanded((current) => !current)}
+            className="self-start cursor-pointer rounded-md border border-border bg-bg px-2 py-1 text-xs text-text-h"
+          >
+            {expanded ? 'Show less' : 'Show more'}
+          </button>
+        </>
+      )}
+
       <div className="mt-auto flex items-center justify-between gap-2">
         <PriceDisplay price={product.price} mrp={product.mrp} />
         {outOfStock ? (
@@ -43,9 +69,11 @@ export default function ProductCardV2({ product, quantityInCart = 0, onAdd, onIn
             onAdd={() => onAdd?.(product)}
             onIncrement={() => onIncrement?.(product)}
             onDecrement={() => onDecrement?.(product)}
+            disabled={disabled}
           />
         )}
       </div>
+      {error && <p className="field-error">{error}</p>}
     </div>
   )
 }

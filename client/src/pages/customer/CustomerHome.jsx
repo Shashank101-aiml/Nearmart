@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as productService from '../../services/productService'
 import * as cartService from '../../services/cartService'
-import ProductCard from '../../components/common/ProductCard'
+import ProductCardV2 from '../../components/common/ProductCardV2'
 import ProductFilters from '../../components/common/ProductFilters'
 import { useInventorySync } from '../../hooks/useInventorySync'
 
@@ -9,8 +9,9 @@ export default function CustomerHome() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [addingId, setAddingId] = useState(null)
-  const [addErrors, setAddErrors] = useState({})
+  const [quantities, setQuantities] = useState({})
+  const [busyProductId, setBusyProductId] = useState(null)
+  const [itemErrors, setItemErrors] = useState({})
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedVendorId, setSelectedVendorId] = useState('')
@@ -26,6 +27,17 @@ export default function CustomerHome() {
       .then(setProducts)
       .catch((err) => setError(err.message || 'Failed to load products'))
       .finally(() => setLoading(false))
+
+    cartService
+      .getCart()
+      .then((cart) => {
+        const initialQuantities = {}
+        for (const item of cart.items) {
+          initialQuantities[item.productId] = item.quantity
+        }
+        setQuantities(initialQuantities)
+      })
+      .catch(() => {})
   }, [])
 
   const vendorOptions = useMemo(() => {
@@ -66,16 +78,33 @@ export default function CustomerHome() {
     setInStockOnly(false)
   }
 
-  const handleAddToCart = async (product) => {
-    setAddingId(product.id)
-    setAddErrors((current) => ({ ...current, [product.id]: null }))
+  const runCartMutation = async (product, action, nextQuantity) => {
+    setBusyProductId(product.id)
+    setItemErrors((current) => ({ ...current, [product.id]: null }))
     try {
-      await cartService.addItem(product.id, 1)
+      await action()
+      setQuantities((current) => ({ ...current, [product.id]: nextQuantity }))
     } catch (err) {
-      setAddErrors((current) => ({ ...current, [product.id]: err.message || 'Failed to add to cart' }))
+      setItemErrors((current) => ({ ...current, [product.id]: err.message || 'Failed to update cart' }))
     } finally {
-      setAddingId(null)
+      setBusyProductId(null)
     }
+  }
+
+  const handleAdd = (product) => runCartMutation(product, () => cartService.addItem(product.id, 1), 1)
+
+  const handleIncrement = (product) => {
+    const nextQuantity = (quantities[product.id] || 0) + 1
+    return runCartMutation(product, () => cartService.updateItem(product.id, nextQuantity), nextQuantity)
+  }
+
+  const handleDecrement = (product) => {
+    const currentQuantity = quantities[product.id] || 0
+    if (currentQuantity <= 1) {
+      return runCartMutation(product, () => cartService.removeItem(product.id), 0)
+    }
+    const nextQuantity = currentQuantity - 1
+    return runCartMutation(product, () => cartService.updateItem(product.id, nextQuantity), nextQuantity)
   }
 
   return (
@@ -110,15 +139,19 @@ export default function CustomerHome() {
         <p>No products match your filters.</p>
       )}
 
-      <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
+      <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
         {filteredProducts.map((product) => (
-          <ProductCard
+          <ProductCardV2
             key={product.id}
             product={product}
+            description={product.description}
+            quantityInCart={quantities[product.id] || 0}
+            onAdd={handleAdd}
+            onIncrement={handleIncrement}
+            onDecrement={handleDecrement}
             showStoreLink
-            onAddToCart={handleAddToCart}
-            adding={addingId === product.id}
-            addError={addErrors[product.id]}
+            disabled={busyProductId === product.id}
+            error={itemErrors[product.id]}
           />
         ))}
       </div>
