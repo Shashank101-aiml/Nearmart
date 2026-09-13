@@ -9,10 +9,11 @@ public class AdminOrderItemResponse {
     private Long vendorId;
     private String vendorStoreName;
     private String fulfillmentStatus;
+    private String imageUrl;
 
     public AdminOrderItemResponse(Long productId, String productTitle, Double unitPrice, Integer quantity,
                                    Double lineTotal, Long vendorId, String vendorStoreName,
-                                   String fulfillmentStatus) {
+                                   String fulfillmentStatus, String imageUrl) {
         this.productId = productId;
         this.productTitle = productTitle;
         this.unitPrice = unitPrice;
@@ -21,6 +22,7 @@ public class AdminOrderItemResponse {
         this.vendorId = vendorId;
         this.vendorStoreName = vendorStoreName;
         this.fulfillmentStatus = fulfillmentStatus;
+        this.imageUrl = imageUrl;
     }
 
     public Long getProductId() { return productId; }
@@ -39,4 +41,6 @@ public class AdminOrderItemResponse {
     public void setVendorStoreName(String vendorStoreName) { this.vendorStoreName = vendorStoreName; }
     public String getFulfillmentStatus() { return fulfillmentStatus; }
     public void setFulfillmentStatus(String fulfillmentStatus) { this.fulfillmentStatus = fulfillmentStatus; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

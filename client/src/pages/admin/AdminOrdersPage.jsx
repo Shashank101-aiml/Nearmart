@@ -105,8 +105,21 @@ export default function AdminOrdersPage() {
                       <div key={vendorStoreName}>
                         <h4>{vendorStoreName}</h4>
                         {items.map((item, index) => (
-                          <div className="flex justify-between gap-3 text-sm text-text" key={index}>
-                            <span>{item.productTitle}</span>
+                          <div className="flex items-center justify-between gap-3 text-sm text-text" key={index}>
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-code-bg">
+                                {item.imageUrl ? (
+                                  <img
+                                    src={item.imageUrl}
+                                    alt={item.productTitle}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-[9px] text-text">No image</span>
+                                )}
+                              </div>
+                              <span>{item.productTitle}</span>
+                            </div>
                             <span>
                               {item.quantity} &times; ${item.unitPrice.toFixed(2)}
                             </span>

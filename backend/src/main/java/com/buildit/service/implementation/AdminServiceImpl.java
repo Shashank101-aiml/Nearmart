@@ -110,7 +110,8 @@ public class AdminServiceImpl implements AdminService {
                 item.getUnitPrice() * item.getQuantity(),
                 item.getProduct() != null ? item.getProduct().getVendor().getId() : null,
                 item.getProduct() != null ? item.getProduct().getVendor().getStoreName() : null,
-                item.getFulfillmentStatus().name()
+                item.getFulfillmentStatus().name(),
+                item.getProduct() != null ? item.getProduct().getImageUrl() : null
             ))
             .toList();
 

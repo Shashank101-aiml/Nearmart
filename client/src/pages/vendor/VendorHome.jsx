@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as productService from '../../services/productService'
+import PriceDisplay from '../../components/common/PriceDisplay'
 
 const emptyForm = {
   title: '',
@@ -355,8 +356,16 @@ export default function VendorHome() {
               </form>
             ) : (
               <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-bg p-4" key={product.id}>
+                <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-md bg-code-bg">
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.title} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-xs text-text">No image</span>
+                  )}
+                </div>
                 <h3 className="m-0 text-lg text-text-h">{product.title}</h3>
-                <p className="font-semibold text-accent">${product.price.toFixed(2)}</p>
+                {product.unit && <p className="text-xs text-text">{product.unit}</p>}
+                <PriceDisplay price={product.price} mrp={product.mrp} />
                 {product.description && <p className="text-sm text-text">{product.description}</p>}
                 <p>Stock: {product.stockQuantity}</p>
                 <p
