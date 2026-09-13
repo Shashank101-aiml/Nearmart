@@ -70,12 +70,10 @@ export default function OrdersPage() {
 
   return (
     <div className="flex-1 px-8 pt-6 pb-12 text-left">
-      <header className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <Link to="/customer">&larr; Back to catalog</Link>
-          <h1 className="m-0 mb-1 text-[28px] text-left">Your orders</h1>
-        </div>
-      </header>
+      <div className="mb-6">
+        <Link to="/customer">&larr; Back to catalog</Link>
+        <h1 className="m-0 mb-1 text-[28px] text-left">Your orders</h1>
+      </div>
 
       {error && <p className="auth-error">{error}</p>}
       {loading && <p>Loading orders...</p>}

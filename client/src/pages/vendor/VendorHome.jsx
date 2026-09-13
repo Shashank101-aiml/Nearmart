@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
 import * as productService from '../../services/productService'
 
 const emptyForm = {
@@ -15,7 +13,6 @@ const emptyForm = {
 }
 
 export default function VendorHome() {
-  const { user, logout } = useAuth()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -151,26 +148,9 @@ export default function VendorHome() {
 
   return (
     <div className="flex-1 px-8 pt-6 pb-12 text-left">
-      <header className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="m-0 mb-1 text-[28px] text-left">Vendor Dashboard</h1>
-          <p>
-            Signed in as <strong>{user.username}</strong> ({user.role})
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link to="/vendor/orders" className="text-sm text-text-h underline">
-            Orders
-          </Link>
-          <button
-            type="button"
-            onClick={logout}
-            className="cursor-pointer whitespace-nowrap rounded-md border border-border bg-bg px-3.5 py-2 text-text-h"
-          >
-            Log out
-          </button>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h1 className="m-0 mb-1 text-[28px] text-left">Vendor Dashboard</h1>
+      </div>
 
       {error && <p className="auth-error">{error}</p>}
 

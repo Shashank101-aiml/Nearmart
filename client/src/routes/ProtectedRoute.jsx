@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import Header from '../components/common/Header'
 
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, user } = useAuth()
@@ -12,5 +13,10 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/" replace />
   }
 
-  return children
+  return (
+    <>
+      <Header />
+      {children}
+    </>
+  )
 }

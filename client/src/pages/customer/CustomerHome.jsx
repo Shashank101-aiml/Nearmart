@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
 import * as productService from '../../services/productService'
 import * as cartService from '../../services/cartService'
 import ProductCard from '../../components/common/ProductCard'
@@ -8,7 +6,6 @@ import ProductFilters from '../../components/common/ProductFilters'
 import { useInventorySync } from '../../hooks/useInventorySync'
 
 export default function CustomerHome() {
-  const { user, logout } = useAuth()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -83,32 +80,9 @@ export default function CustomerHome() {
 
   return (
     <div className="flex-1 px-8 pt-6 pb-12 text-left">
-      <header className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="m-0 mb-1 text-[28px] text-left">Browse products</h1>
-          <p>
-            Signed in as <strong>{user.username}</strong> ({user.role})
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link to="/customer/orders" className="text-sm text-text-h underline">
-            Orders
-          </Link>
-          <Link to="/customer/notifications" className="text-sm text-text-h underline">
-            Notifications
-          </Link>
-          <Link to="/customer/cart" className="text-sm text-text-h underline">
-            Cart
-          </Link>
-          <button
-            type="button"
-            onClick={logout}
-            className="cursor-pointer whitespace-nowrap rounded-md border border-border bg-bg px-3.5 py-2 text-text-h"
-          >
-            Log out
-          </button>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h1 className="m-0 mb-1 text-[28px] text-left">Browse products</h1>
+      </div>
 
       {error && <p className="auth-error">{error}</p>}
       {loading && <p>Loading products...</p>}

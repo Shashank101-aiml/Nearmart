@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { roleHomePath } from '../utils/roleHome'
 import ProtectedRoute from './ProtectedRoute'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
@@ -15,10 +16,6 @@ import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminVendorsPage from '../pages/admin/AdminVendorsPage'
 import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
 import ComponentPreviewPage from '../pages/dev/ComponentPreviewPage'
-
-function roleHomePath(role) {
-  return `/${role.toLowerCase()}`
-}
 
 function HomeRedirect() {
   const { isAuthenticated, user } = useAuth()
