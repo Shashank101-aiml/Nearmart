@@ -1,14 +1,12 @@
-import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useCart } from '../../hooks/useCart'
 import { roleHomePath } from '../../utils/roleHome'
-import * as cartService from '../../services/cartService'
 
 const NAV_LINKS = {
   CUSTOMER: [
     { to: '/customer/orders', label: 'Orders' },
     { to: '/customer/notifications', label: 'Notifications' },
-    { to: '/customer/cart', label: 'Cart', showCartBadge: true },
   ],
   VENDOR: [{ to: '/vendor/orders', label: 'Orders' }],
   ADMIN: [
@@ -23,15 +21,7 @@ const navLinkClasses = ({ isActive }) =>
 
 export default function Header() {
   const { user, logout } = useAuth()
-  const [cartCount, setCartCount] = useState(0)
-
-  useEffect(() => {
-    if (user.role !== 'CUSTOMER') return
-    cartService
-      .getCart()
-      .then((cart) => setCartCount(cart.items.reduce((sum, item) => sum + item.quantity, 0)))
-      .catch(() => {})
-  }, [user.role])
+  const { itemCount, openCart } = useCart()
 
   const links = NAV_LINKS[user.role] || []
 
@@ -43,16 +33,19 @@ export default function Header() {
       <nav className="flex items-center gap-4">
         {links.map((link) => (
           <NavLink key={link.to} to={link.to} className={navLinkClasses}>
-            <span className="relative">
-              {link.label}
-              {link.showCartBadge && cartCount > 0 && (
-                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white no-underline">
-                  {cartCount}
-                </span>
-              )}
-            </span>
+            {link.label}
           </NavLink>
         ))}
+        {user.role === 'CUSTOMER' && (
+          <button type="button" onClick={openCart} className="relative cursor-pointer text-sm text-text-h underline">
+            Cart
+            {itemCount > 0 && (
+              <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white no-underline">
+                {itemCount}
+              </span>
+            )}
+          </button>
+        )}
       </nav>
       <div className="flex items-center gap-3">
         <span className="text-sm text-text">

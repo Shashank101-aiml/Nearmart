@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import * as productService from '../../services/productService'
-import * as cartService from '../../services/cartService'
 import ProductCard from '../../components/common/ProductCard'
 import ProductFilters from '../../components/common/ProductFilters'
 import { useInventorySync } from '../../hooks/useInventorySync'
+import { useCart } from '../../hooks/useCart'
 
 export default function VendorStorefront() {
   const { vendorId } = useParams()
@@ -12,8 +12,7 @@ export default function VendorStorefront() {
   const [products, setProducts] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [addingId, setAddingId] = useState(null)
-  const [addErrors, setAddErrors] = useState({})
+  const { busyProductId, itemErrors, addItem } = useCart()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [minPrice, setMinPrice] = useState('')
@@ -58,17 +57,7 @@ export default function VendorStorefront() {
     setInStockOnly(false)
   }
 
-  const handleAddToCart = async (product) => {
-    setAddingId(product.id)
-    setAddErrors((current) => ({ ...current, [product.id]: null }))
-    try {
-      await cartService.addItem(product.id, 1)
-    } catch (err) {
-      setAddErrors((current) => ({ ...current, [product.id]: err.message || 'Failed to add to cart' }))
-    } finally {
-      setAddingId(null)
-    }
-  }
+  const handleAddToCart = (product) => addItem(product.id)
 
   return (
     <div className="flex-1 px-8 pt-6 pb-12 text-left">
@@ -107,8 +96,8 @@ export default function VendorStorefront() {
             key={product.id}
             product={product}
             onAddToCart={handleAddToCart}
-            adding={addingId === product.id}
-            addError={addErrors[product.id]}
+            adding={busyProductId === product.id}
+            addError={itemErrors[product.id]}
           />
         ))}
       </div>
