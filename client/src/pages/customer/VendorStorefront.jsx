@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import * as productService from '../../services/productService'
-import ProductCard from '../../components/common/ProductCard'
+import ProductCardV2 from '../../components/common/ProductCardV2'
 import ProductFilters from '../../components/common/ProductFilters'
 import { useInventorySync } from '../../hooks/useInventorySync'
 import { useCart } from '../../hooks/useCart'
@@ -12,7 +12,7 @@ export default function VendorStorefront() {
   const [products, setProducts] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const { busyProductId, itemErrors, addItem } = useCart()
+  const { cart, busyProductId, itemErrors, addItem, incrementItem, decrementItem } = useCart()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [minPrice, setMinPrice] = useState('')
@@ -57,7 +57,7 @@ export default function VendorStorefront() {
     setInStockOnly(false)
   }
 
-  const handleAddToCart = (product) => addItem(product.id)
+  const quantityFor = (productId) => cart?.items.find((item) => item.productId === productId)?.quantity || 0
 
   return (
     <div className="flex-1 px-8 pt-6 pb-12 text-left">
@@ -90,14 +90,18 @@ export default function VendorStorefront() {
         <p>No products match your filters.</p>
       )}
 
-      <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
+      <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
         {filteredProducts.map((product) => (
-          <ProductCard
+          <ProductCardV2
             key={product.id}
             product={product}
-            onAddToCart={handleAddToCart}
-            adding={busyProductId === product.id}
-            addError={itemErrors[product.id]}
+            description={product.description}
+            quantityInCart={quantityFor(product.id)}
+            onAdd={(p) => addItem(p.id)}
+            onIncrement={(p) => incrementItem(p.id)}
+            onDecrement={(p) => decrementItem(p.id)}
+            disabled={busyProductId === product.id}
+            error={itemErrors[product.id]}
           />
         ))}
       </div>
