@@ -47,6 +47,9 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setAvailable(request.getAvailable() != null ? request.getAvailable() : true);
+        product.setImageUrl(request.getImageUrl());
+        product.setMrp(request.getMrp());
+        product.setUnit(request.getUnit());
         product = productRepository.save(product);
 
         Inventory inventory = new Inventory();
@@ -68,6 +71,9 @@ public class ProductServiceImpl implements ProductService {
         if (request.getAvailable() != null) {
             product.setAvailable(request.getAvailable());
         }
+        product.setImageUrl(request.getImageUrl());
+        product.setMrp(request.getMrp());
+        product.setUnit(request.getUnit());
         product = productRepository.save(product);
 
         Inventory inventory = inventoryRepository.findByProductId(productId).orElseGet(() -> {
@@ -147,7 +153,10 @@ public class ProductServiceImpl implements ProductService {
             product.getCreatedAt(),
             product.getVendor().getId(),
             product.getVendor().getStoreName(),
-            stockQuantity
+            stockQuantity,
+            product.getImageUrl(),
+            product.getMrp(),
+            product.getUnit()
         );
     }
 }

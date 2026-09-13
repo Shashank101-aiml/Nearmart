@@ -3,7 +3,16 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import * as productService from '../../services/productService'
 
-const emptyForm = { title: '', description: '', price: '', stockQuantity: '', available: true }
+const emptyForm = {
+  title: '',
+  description: '',
+  price: '',
+  stockQuantity: '',
+  available: true,
+  imageUrl: '',
+  mrp: '',
+  unit: '',
+}
 
 export default function VendorHome() {
   const { user, logout } = useAuth()
@@ -42,6 +51,9 @@ export default function VendorHome() {
         price: Number(createForm.price),
         stockQuantity: Number(createForm.stockQuantity),
         available: createForm.available,
+        imageUrl: createForm.imageUrl || null,
+        mrp: createForm.mrp ? Number(createForm.mrp) : null,
+        unit: createForm.unit || null,
       })
       setProducts([created, ...products])
       setCreateForm(emptyForm)
@@ -60,6 +72,9 @@ export default function VendorHome() {
       price: String(product.price),
       stockQuantity: String(product.stockQuantity ?? 0),
       available: product.available,
+      imageUrl: product.imageUrl || '',
+      mrp: product.mrp != null ? String(product.mrp) : '',
+      unit: product.unit || '',
     })
   }
 
@@ -84,6 +99,9 @@ export default function VendorHome() {
         price: Number(editForm.price),
         stockQuantity: Number(editForm.stockQuantity),
         available: editForm.available,
+        imageUrl: editForm.imageUrl || null,
+        mrp: editForm.mrp ? Number(editForm.mrp) : null,
+        unit: editForm.unit || null,
       })
       setProducts(products.map((p) => (p.id === productId ? updated : p)))
       cancelEdit()
@@ -103,6 +121,9 @@ export default function VendorHome() {
         price: product.price,
         stockQuantity: product.stockQuantity,
         available: !product.available,
+        imageUrl: product.imageUrl,
+        mrp: product.mrp,
+        unit: product.unit,
       })
       setProducts(products.map((p) => (p.id === product.id ? updated : p)))
     } catch (err) {
@@ -201,6 +222,36 @@ export default function VendorHome() {
               className={fieldClasses}
             />
           </label>
+          <label className={labelClasses}>
+            Image URL (optional)
+            <input
+              name="imageUrl"
+              value={createForm.imageUrl}
+              onChange={handleCreateChange}
+              className={fieldClasses}
+            />
+          </label>
+          <label className={labelClasses}>
+            MRP (optional)
+            <input
+              name="mrp"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={createForm.mrp}
+              onChange={handleCreateChange}
+              className={fieldClasses}
+            />
+          </label>
+          <label className={labelClasses}>
+            Unit (optional, e.g. "1 kg")
+            <input
+              name="unit"
+              value={createForm.unit}
+              onChange={handleCreateChange}
+              className={fieldClasses}
+            />
+          </label>
           <label className={checkboxLabelClasses}>
             <input
               name="available"
@@ -271,6 +322,36 @@ export default function VendorHome() {
                     value={editForm.stockQuantity}
                     onChange={handleEditChange}
                     required
+                    className={fieldClasses}
+                  />
+                </label>
+                <label className={labelClasses}>
+                  Image URL (optional)
+                  <input
+                    name="imageUrl"
+                    value={editForm.imageUrl}
+                    onChange={handleEditChange}
+                    className={fieldClasses}
+                  />
+                </label>
+                <label className={labelClasses}>
+                  MRP (optional)
+                  <input
+                    name="mrp"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={editForm.mrp}
+                    onChange={handleEditChange}
+                    className={fieldClasses}
+                  />
+                </label>
+                <label className={labelClasses}>
+                  Unit (optional, e.g. "1 kg")
+                  <input
+                    name="unit"
+                    value={editForm.unit}
+                    onChange={handleEditChange}
                     className={fieldClasses}
                   />
                 </label>

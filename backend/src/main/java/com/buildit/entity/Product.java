@@ -22,6 +22,13 @@ public class Product {
     @Column(nullable = false)
     private Boolean available = true;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    private Double mrp;
+
+    private String unit;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -44,6 +51,12 @@ public class Product {
     public void setPrice(Double price) { this.price = price; }
     public Boolean getAvailable() { return available; }
     public void setAvailable(Boolean available) { this.available = available; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Double getMrp() { return mrp; }
+    public void setMrp(Double mrp) { this.mrp = mrp; }
+    public String getUnit() { return unit; }
+    public void setUnit(String unit) { this.unit = unit; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

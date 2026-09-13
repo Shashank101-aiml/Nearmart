@@ -60,6 +60,9 @@ class ProductServiceImplTest {
         request.setDescription("A useful widget");
         request.setPrice(9.99);
         request.setStockQuantity(20);
+        request.setImageUrl("https://example.com/widget.jpg");
+        request.setMrp(12.99);
+        request.setUnit("1 pc");
         return request;
     }
 
@@ -78,6 +81,9 @@ class ProductServiceImplTest {
         assertThat(response.getId()).isEqualTo(100L);
         assertThat(response.getVendorId()).isEqualTo(1L);
         assertThat(response.getAvailable()).isTrue();
+        assertThat(response.getImageUrl()).isEqualTo("https://example.com/widget.jpg");
+        assertThat(response.getMrp()).isEqualTo(12.99);
+        assertThat(response.getUnit()).isEqualTo("1 pc");
         verify(inventoryRepository).save(argThat(inv -> inv.getProductId().equals(100L) && inv.getQuantity() == 20));
     }
 
@@ -101,6 +107,9 @@ class ProductServiceImplTest {
         ProductResponse response = productService.update(1L, 10L, request);
 
         assertThat(response.getTitle()).isEqualTo("Updated Widget");
+        assertThat(response.getImageUrl()).isEqualTo("https://example.com/widget.jpg");
+        assertThat(response.getMrp()).isEqualTo(12.99);
+        assertThat(response.getUnit()).isEqualTo("1 pc");
         verify(inventoryPublisher).broadcastStockUpdate(10L, 20);
     }
 

@@ -24,6 +24,15 @@ public class ProductRequest {
     @Min(0)
     private Integer stockQuantity;
 
+    @Size(max = 2048)
+    private String imageUrl;
+
+    @DecimalMin(value = "0.0", inclusive = false)
+    private Double mrp;
+
+    @Size(max = 50)
+    private String unit;
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
@@ -34,4 +43,10 @@ public class ProductRequest {
     public void setAvailable(Boolean available) { this.available = available; }
     public Integer getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Double getMrp() { return mrp; }
+    public void setMrp(Double mrp) { this.mrp = mrp; }
+    public String getUnit() { return unit; }
+    public void setUnit(String unit) { this.unit = unit; }
 }

@@ -12,9 +12,13 @@ public class ProductResponse {
     private Long vendorId;
     private String storeName;
     private Integer stockQuantity;
+    private String imageUrl;
+    private Double mrp;
+    private String unit;
 
     public ProductResponse(Long id, String title, String description, Double price, Boolean available,
-                            LocalDateTime createdAt, Long vendorId, String storeName, Integer stockQuantity) {
+                            LocalDateTime createdAt, Long vendorId, String storeName, Integer stockQuantity,
+                            String imageUrl, Double mrp, String unit) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -24,6 +28,9 @@ public class ProductResponse {
         this.vendorId = vendorId;
         this.storeName = storeName;
         this.stockQuantity = stockQuantity;
+        this.imageUrl = imageUrl;
+        this.mrp = mrp;
+        this.unit = unit;
     }
 
     public Long getId() { return id; }
@@ -44,4 +51,10 @@ public class ProductResponse {
     public void setStoreName(String storeName) { this.storeName = storeName; }
     public Integer getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Double getMrp() { return mrp; }
+    public void setMrp(Double mrp) { this.mrp = mrp; }
+    public String getUnit() { return unit; }
+    public void setUnit(String unit) { this.unit = unit; }
 }
