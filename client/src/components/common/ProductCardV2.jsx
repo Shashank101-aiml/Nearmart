@@ -24,7 +24,7 @@ export default function ProductCardV2({
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border bg-bg p-3">
-      <div className="relative aspect-square w-full overflow-hidden rounded-md bg-code-bg">
+      <Link to={`/customer/products/${product.id}`} className="relative aspect-square w-full overflow-hidden rounded-md bg-code-bg">
         {product.imageUrl ? (
           <img src={product.imageUrl} alt={product.title} className="h-full w-full object-cover" />
         ) : (
@@ -35,9 +35,11 @@ export default function ProductCardV2({
             <DiscountBadge percent={discountPercent} />
           </div>
         )}
-      </div>
+      </Link>
 
-      <h3 className="m-0 line-clamp-2 text-sm text-text-h">{product.title}</h3>
+      <h3 className="m-0 line-clamp-2 text-sm text-text-h">
+        <Link to={`/customer/products/${product.id}`}>{product.title}</Link>
+      </h3>
       {product.unit && <p className="text-xs text-text">{product.unit}</p>}
 
       {showStoreLink && product.vendorId && (
