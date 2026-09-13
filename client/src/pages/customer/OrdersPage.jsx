@@ -113,8 +113,17 @@ export default function OrdersPage() {
             {expandedId === order.id && (
               <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
                 {order.items.map((item) => (
-                  <div className="flex justify-between gap-3 text-sm text-text" key={item.id}>
-                    <span>{item.productTitle}</span>
+                  <div className="flex items-center justify-between gap-3 text-sm text-text" key={item.id}>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-code-bg">
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.productTitle} className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="text-[9px] text-text">No image</span>
+                        )}
+                      </div>
+                      <span>{item.productTitle}</span>
+                    </div>
                     <span>
                       {item.quantity} &times; ${item.unitPrice.toFixed(2)}
                     </span>

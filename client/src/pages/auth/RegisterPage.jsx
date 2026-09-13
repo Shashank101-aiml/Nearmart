@@ -71,8 +71,12 @@ export default function RegisterPage() {
   const fieldErrorClasses = '-mt-2 text-xs text-red-600'
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4 py-8">
-      <form onSubmit={handleSubmit} className="flex w-full max-w-[380px] flex-col gap-3.5 text-left">
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-8">
+      <span className="text-2xl font-bold text-accent">Nearmart</span>
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-full max-w-[380px] flex-col gap-3.5 rounded-lg border border-border bg-bg p-8 text-left"
+      >
         <h1 className="m-0 mb-2 text-[32px] text-center">Register</h1>
         {error && <p className="mb-1 text-sm text-red-600">{error}</p>}
 

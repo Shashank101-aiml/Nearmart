@@ -340,7 +340,8 @@ public class OrderServiceImpl implements OrderService {
                 item.getUnitPrice(),
                 item.getQuantity(),
                 item.getUnitPrice() * item.getQuantity(),
-                item.getFulfillmentStatus().name()
+                item.getFulfillmentStatus().name(),
+                item.getProduct() != null ? item.getProduct().getImageUrl() : null
             ))
             .toList();
     }

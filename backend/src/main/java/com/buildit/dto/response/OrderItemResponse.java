@@ -8,9 +8,10 @@ public class OrderItemResponse {
     private Integer quantity;
     private Double lineTotal;
     private String fulfillmentStatus;
+    private String imageUrl;
 
     public OrderItemResponse(Long id, Long productId, String productTitle, Double unitPrice, Integer quantity,
-                              Double lineTotal, String fulfillmentStatus) {
+                              Double lineTotal, String fulfillmentStatus, String imageUrl) {
         this.id = id;
         this.productId = productId;
         this.productTitle = productTitle;
@@ -18,6 +19,7 @@ public class OrderItemResponse {
         this.quantity = quantity;
         this.lineTotal = lineTotal;
         this.fulfillmentStatus = fulfillmentStatus;
+        this.imageUrl = imageUrl;
     }
 
     public Long getId() { return id; }
@@ -34,4 +36,6 @@ public class OrderItemResponse {
     public void setLineTotal(Double lineTotal) { this.lineTotal = lineTotal; }
     public String getFulfillmentStatus() { return fulfillmentStatus; }
     public void setFulfillmentStatus(String fulfillmentStatus) { this.fulfillmentStatus = fulfillmentStatus; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

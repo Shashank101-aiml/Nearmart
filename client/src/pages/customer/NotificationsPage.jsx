@@ -44,13 +44,16 @@ export default function NotificationsPage() {
             className="rounded-lg border border-border p-4"
             key={notification.id}
             onClick={() => handleMarkRead(notification)}
-            style={{ opacity: notification.read ? 0.6 : 1, cursor: notification.read ? 'default' : 'pointer' }}
+            style={{ cursor: notification.read ? 'default' : 'pointer' }}
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <strong className="mr-2 text-text-h">{notification.message}</strong>
+              <div className="flex items-center gap-2">
+                {!notification.read && <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />}
+                <strong className={notification.read ? 'mr-2 text-text' : 'mr-2 text-text-h'}>
+                  {notification.message}
+                </strong>
                 {!notification.read && (
-                  <span className="rounded-full bg-code-bg px-2 py-0.5 text-xs text-text">New</span>
+                  <span className="rounded-full bg-accent-bg px-2 py-0.5 text-xs text-accent">New</span>
                 )}
               </div>
               <p>{new Date(notification.createdAt).toLocaleString()}</p>
