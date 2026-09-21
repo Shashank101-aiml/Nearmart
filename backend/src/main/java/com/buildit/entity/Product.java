@@ -1,5 +1,6 @@
 package com.buildit.entity;
 
+import com.buildit.enums.ProductCategory;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -29,6 +30,10 @@ public class Product {
 
     private String unit;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category")
+    private ProductCategory category;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -57,6 +62,8 @@ public class Product {
     public void setMrp(Double mrp) { this.mrp = mrp; }
     public String getUnit() { return unit; }
     public void setUnit(String unit) { this.unit = unit; }
+    public ProductCategory getCategory() { return category; }
+    public void setCategory(ProductCategory category) { this.category = category; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

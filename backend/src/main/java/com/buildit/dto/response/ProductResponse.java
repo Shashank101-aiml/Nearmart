@@ -1,5 +1,7 @@
 package com.buildit.dto.response;
 
+import com.buildit.enums.ProductCategory;
+
 import java.time.LocalDateTime;
 
 public class ProductResponse {
@@ -15,10 +17,11 @@ public class ProductResponse {
     private String imageUrl;
     private Double mrp;
     private String unit;
+    private ProductCategory category;
 
     public ProductResponse(Long id, String title, String description, Double price, Boolean available,
                             LocalDateTime createdAt, Long vendorId, String storeName, Integer stockQuantity,
-                            String imageUrl, Double mrp, String unit) {
+                            String imageUrl, Double mrp, String unit, ProductCategory category) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -31,6 +34,7 @@ public class ProductResponse {
         this.imageUrl = imageUrl;
         this.mrp = mrp;
         this.unit = unit;
+        this.category = category;
     }
 
     public Long getId() { return id; }
@@ -57,4 +61,6 @@ public class ProductResponse {
     public void setMrp(Double mrp) { this.mrp = mrp; }
     public String getUnit() { return unit; }
     public void setUnit(String unit) { this.unit = unit; }
+    public ProductCategory getCategory() { return category; }
+    public void setCategory(ProductCategory category) { this.category = category; }
 }

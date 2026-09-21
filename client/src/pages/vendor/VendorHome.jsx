@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as productService from '../../services/productService'
 import PriceDisplay from '../../components/common/PriceDisplay'
+import { PRODUCT_CATEGORIES, categoryLabel } from '../../constants/categories'
 
 const emptyForm = {
   title: '',
@@ -11,6 +12,7 @@ const emptyForm = {
   imageUrl: '',
   mrp: '',
   unit: '',
+  category: '',
 }
 
 export default function VendorHome() {
@@ -52,6 +54,7 @@ export default function VendorHome() {
         imageUrl: createForm.imageUrl || null,
         mrp: createForm.mrp ? Number(createForm.mrp) : null,
         unit: createForm.unit || null,
+        category: createForm.category || null,
       })
       setProducts([created, ...products])
       setCreateForm(emptyForm)
@@ -73,6 +76,7 @@ export default function VendorHome() {
       imageUrl: product.imageUrl || '',
       mrp: product.mrp != null ? String(product.mrp) : '',
       unit: product.unit || '',
+      category: product.category || '',
     })
   }
 
@@ -100,6 +104,7 @@ export default function VendorHome() {
         imageUrl: editForm.imageUrl || null,
         mrp: editForm.mrp ? Number(editForm.mrp) : null,
         unit: editForm.unit || null,
+        category: editForm.category || null,
       })
       setProducts(products.map((p) => (p.id === productId ? updated : p)))
       cancelEdit()
@@ -122,6 +127,7 @@ export default function VendorHome() {
         imageUrl: product.imageUrl,
         mrp: product.mrp,
         unit: product.unit,
+        category: product.category,
       })
       setProducts(products.map((p) => (p.id === product.id ? updated : p)))
     } catch (err) {
@@ -233,6 +239,22 @@ export default function VendorHome() {
               className={fieldClasses}
             />
           </label>
+          <label className={labelClasses}>
+            Category (optional)
+            <select
+              name="category"
+              value={createForm.category}
+              onChange={handleCreateChange}
+              className={fieldClasses}
+            >
+              <option value="">Uncategorized</option>
+              {PRODUCT_CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.icon} {c.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className={checkboxLabelClasses}>
             <input
               name="available"
@@ -336,6 +358,22 @@ export default function VendorHome() {
                     className={fieldClasses}
                   />
                 </label>
+                <label className={labelClasses}>
+                  Category (optional)
+                  <select
+                    name="category"
+                    value={editForm.category}
+                    onChange={handleEditChange}
+                    className={fieldClasses}
+                  >
+                    <option value="">Uncategorized</option>
+                    {PRODUCT_CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.icon} {c.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <label className={checkboxLabelClasses}>
                   <input
                     name="available"
@@ -365,6 +403,11 @@ export default function VendorHome() {
                 </div>
                 <h3 className="m-0 text-lg text-text-h">{product.title}</h3>
                 {product.unit && <p className="text-xs text-text">{product.unit}</p>}
+                {product.category && (
+                  <p className="self-start rounded-full bg-accent-bg px-2 py-0.5 text-xs text-accent">
+                    {categoryLabel(product.category)}
+                  </p>
+                )}
                 <PriceDisplay price={product.price} mrp={product.mrp} />
                 {product.description && <p className="text-sm text-text">{product.description}</p>}
                 <p>Stock: {product.stockQuantity}</p>

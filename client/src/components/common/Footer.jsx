@@ -1,4 +1,11 @@
+import { useNavigate } from 'react-router-dom'
+import { PRODUCT_CATEGORIES } from '../../constants/categories'
+
+const FOOTER_CATEGORIES = ['FRESH_PRODUCE', 'DAIRY_EGGS', 'COLD_DRINKS', 'PHARMACY']
+
 export default function Footer() {
+  const navigate = useNavigate()
+
   return (
     <footer className="mt-16 border-t border-border bg-bg py-12">
       <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-8 px-8 text-left md:grid-cols-5">
@@ -18,26 +25,20 @@ export default function Footer() {
         <div>
           <h4 className="mb-3 text-xs font-black tracking-wider text-text-h uppercase">Categories</h4>
           <ul className="flex flex-col gap-2 text-xs font-semibold text-text">
-            <li>
-              <a href="#" className="hover:text-accent">
-                Fresh Produce
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-accent">
-                Dairy &amp; Eggs
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-accent">
-                Cold Drinks
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-accent">
-                Pharmacy
-              </a>
-            </li>
+            {FOOTER_CATEGORIES.map((value) => {
+              const category = PRODUCT_CATEGORIES.find((c) => c.value === value)
+              return (
+                <li key={value}>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/customer?category=${value}`)}
+                    className="cursor-pointer border-none bg-transparent p-0 text-left font-semibold hover:text-accent"
+                  >
+                    {category.label}
+                  </button>
+                </li>
+              )
+            })}
           </ul>
         </div>
 

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import * as productService from '../../services/productService'
 import ProductCardV2 from '../../components/common/ProductCardV2'
 import ProductFilters from '../../components/common/ProductFilters'
+import CategoryGrid from '../../components/common/CategoryGrid'
 import { useInventorySync } from '../../hooks/useInventorySync'
 import { useCart } from '../../hooks/useCart'
 
@@ -18,12 +19,15 @@ export default function CustomerHome() {
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [inStockOnly, setInStockOnly] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState(() => searchParams.get('category') || '')
 
   useInventorySync(setProducts)
 
   useEffect(() => {
     const q = searchParams.get('q')
     if (q) Promise.resolve().then(() => setSearchTerm(q))
+    const category = searchParams.get('category')
+    if (category) Promise.resolve().then(() => setSelectedCategory(category))
   }, [searchParams])
 
   useEffect(() => {
@@ -44,7 +48,9 @@ export default function CustomerHome() {
     return Array.from(seen.entries()).map(([id, name]) => ({ id, name }))
   }, [products])
 
-  const hasActiveFilters = Boolean(searchTerm || selectedVendorId || minPrice || maxPrice || inStockOnly)
+  const hasActiveFilters = Boolean(
+    searchTerm || selectedVendorId || minPrice || maxPrice || inStockOnly || selectedCategory
+  )
 
   const filteredProducts = useMemo(() => {
     const term = searchTerm.trim().toLowerCase()
@@ -60,9 +66,10 @@ export default function CustomerHome() {
       if (min !== null && product.price < min) return false
       if (max !== null && product.price > max) return false
       if (inStockOnly && !(product.stockQuantity > 0)) return false
+      if (selectedCategory && product.category !== selectedCategory) return false
       return true
     })
-  }, [products, searchTerm, selectedVendorId, minPrice, maxPrice, inStockOnly])
+  }, [products, searchTerm, selectedVendorId, minPrice, maxPrice, inStockOnly, selectedCategory])
 
   const clearFilters = () => {
     setSearchTerm('')
@@ -70,6 +77,7 @@ export default function CustomerHome() {
     setMinPrice('')
     setMaxPrice('')
     setInStockOnly(false)
+    setSelectedCategory('')
   }
 
   const quantityFor = (productId) => cart?.items.find((item) => item.productId === productId)?.quantity || 0
@@ -83,6 +91,10 @@ export default function CustomerHome() {
       {error && <p className="auth-error">{error}</p>}
       {loading && <p>Loading products...</p>}
       {!loading && !error && products.length === 0 && <p>No products available yet.</p>}
+
+      {!loading && !error && products.length > 0 && (
+        <CategoryGrid selectedCategory={selectedCategory} onSelect={setSelectedCategory} />
+      )}
 
       {!loading && !error && products.length > 0 && (
         <ProductFilters

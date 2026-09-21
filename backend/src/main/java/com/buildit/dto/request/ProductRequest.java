@@ -1,5 +1,6 @@
 package com.buildit.dto.request;
 
+import com.buildit.enums.ProductCategory;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -33,6 +34,8 @@ public class ProductRequest {
     @Size(max = 50)
     private String unit;
 
+    private ProductCategory category;
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
@@ -49,4 +52,6 @@ public class ProductRequest {
     public void setMrp(Double mrp) { this.mrp = mrp; }
     public String getUnit() { return unit; }
     public void setUnit(String unit) { this.unit = unit; }
+    public ProductCategory getCategory() { return category; }
+    public void setCategory(ProductCategory category) { this.category = category; }
 }
