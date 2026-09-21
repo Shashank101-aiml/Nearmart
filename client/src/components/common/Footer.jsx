@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { PRODUCT_CATEGORIES } from '../../constants/categories'
 
-const FOOTER_CATEGORIES = ['FRESH_PRODUCE', 'DAIRY_EGGS', 'COLD_DRINKS', 'PHARMACY']
+const FOOTER_CATEGORIES = ['VEGETABLES', 'DAIRY_EGGS', 'COLD_DRINKS', 'PHARMACY']
 
 export default function Footer() {
   const navigate = useNavigate()
