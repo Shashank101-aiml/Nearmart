@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../hooks/useToast'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -29,6 +30,7 @@ function validate(form) {
 
 export default function RegisterPage() {
   const { register } = useAuth()
+  const { showToast } = useToast()
   const [form, setForm] = useState(initialForm)
   const [fieldErrors, setFieldErrors] = useState({})
   const [error, setError] = useState('')
@@ -58,7 +60,9 @@ export default function RegisterPage() {
       }
       await register(payload)
     } catch (err) {
-      setError(err.message || 'Registration failed')
+      const message = err.message || 'Registration failed'
+      setError(message)
+      showToast(message, 'error')
       if (err.fieldErrors) setFieldErrors(err.fieldErrors)
     } finally {
       setSubmitting(false)
@@ -75,7 +79,7 @@ export default function RegisterPage() {
       <span className="text-2xl font-bold text-accent">Nearmart</span>
       <form
         onSubmit={handleSubmit}
-        className="flex w-full max-w-[380px] flex-col gap-3.5 rounded-lg border border-border bg-bg p-8 text-left"
+        className="flex w-full max-w-[380px] flex-col gap-3.5 rounded-lg border border-border bg-bg p-8 shadow-sm text-left"
       >
         <h1 className="m-0 mb-2 text-[32px] text-center">Register</h1>
         {error && <p className="mb-1 text-sm text-red-600">{error}</p>}

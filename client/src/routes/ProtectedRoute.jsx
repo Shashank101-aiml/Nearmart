@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import Header from '../components/common/Header'
 import CartDrawer from '../components/common/CartDrawer'
+import Footer from '../components/common/Footer'
 
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, user } = useAuth()
@@ -19,6 +20,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
       <Header />
       <CartDrawer />
       {children}
+      <Footer />
     </>
   )
 }

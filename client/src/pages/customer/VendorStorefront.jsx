@@ -60,7 +60,7 @@ export default function VendorStorefront() {
   const quantityFor = (productId) => cart?.items.find((item) => item.productId === productId)?.quantity || 0
 
   return (
-    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-8 pt-6 pb-12 text-left">
       <div className="mb-6">
         <Link to="/customer">&larr; Back to catalog</Link>
         {vendor && <h1 className="m-0 mb-1 text-[28px] text-left">{vendor.storeName}</h1>}

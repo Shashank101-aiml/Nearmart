@@ -148,7 +148,7 @@ export default function VendorHome() {
   const cardButtonClasses = 'cursor-pointer rounded-md border border-border bg-bg px-2.5 py-1.5 text-text-h'
 
   return (
-    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-8 pt-6 pb-12 text-left">
       <div className="mb-6">
         <h1 className="m-0 mb-1 text-[28px] text-left">Vendor Dashboard</h1>
       </div>

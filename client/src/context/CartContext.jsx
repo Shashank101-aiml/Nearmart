@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
 import * as cartService from '../services/cartService'
 import { CartContext } from './cart-context'
 
 export function CartProvider({ children }) {
   const { isAuthenticated, user } = useAuth()
+  const { showToast } = useToast()
   const [cart, setCart] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [busyProductId, setBusyProductId] = useState(null)
@@ -14,7 +16,7 @@ export function CartProvider({ children }) {
     if (isAuthenticated && user?.role === 'CUSTOMER') {
       cartService.getCart().then(setCart).catch(() => {})
     } else {
-      setCart(null)
+      Promise.resolve().then(() => setCart(null))
     }
   }, [isAuthenticated, user?.role])
 
@@ -25,7 +27,9 @@ export function CartProvider({ children }) {
       const updated = await action()
       setCart(updated)
     } catch (err) {
-      setItemErrors((current) => ({ ...current, [productId]: err.message || 'Failed to update cart' }))
+      const message = err.message || 'Failed to update cart'
+      setItemErrors((current) => ({ ...current, [productId]: message }))
+      showToast(message, 'error')
     } finally {
       setBusyProductId(null)
     }

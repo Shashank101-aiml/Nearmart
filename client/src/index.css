@@ -2,6 +2,8 @@
 
 @theme {
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-dark: var(--accent-dark);
   --color-accent-bg: var(--accent-bg);
   --color-accent-border: var(--accent-border);
   --color-border: var(--border);
@@ -11,23 +13,32 @@
   --color-code-bg: var(--code-bg);
   --font-sans: var(--sans);
   --font-mono: var(--mono);
+
+  /* Bumped from Tailwind's defaults (6px/8px) — cascades a more rounded,
+   * "quick commerce" look across every card/button/input in the app, since
+   * rounded-md/rounded-lg are the only radius utilities used anywhere. */
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
 }
 
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
+  --text: #64748b;
+  --text-h: #0f172a;
   --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
+  --page-bg: #f8fafc;
+  --border: #e2e8f0;
+  --code-bg: #f1f5f9;
+  --accent: #6c5ce7;
+  --accent-hover: #5a4ad1;
+  --accent-dark: #4834d4;
+  --accent-bg: #f3e8ff;
+  --accent-border: rgba(108, 92, 231, 0.5);
   --social-bg: rgba(244, 243, 236, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
@@ -47,14 +58,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
+    --text: #94a3b8;
+    --text-h: #f1f5f9;
+    --bg: #14151d;
+    --page-bg: #0a0b10;
+    --border: #2d3348;
+    --code-bg: #1e2130;
+    --accent: #a78bfa;
+    --accent-hover: #8b5cf6;
+    --accent-dark: #6d28d9;
+    --accent-bg: rgba(167, 139, 250, 0.15);
+    --accent-border: rgba(167, 139, 250, 0.5);
     --social-bg: rgba(47, 48, 58, 0.5);
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
@@ -77,18 +91,16 @@
 @layer base {
   body {
     margin: 0;
+    background: var(--page-bg);
   }
 
   #root {
-    width: 1126px;
-    max-width: 100%;
-    margin: 0 auto;
-    text-align: center;
-    border-inline: 1px solid var(--border);
+    width: 100%;
     min-height: 100svh;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    text-align: center;
   }
 
   h1,

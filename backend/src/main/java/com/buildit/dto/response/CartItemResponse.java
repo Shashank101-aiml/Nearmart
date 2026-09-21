@@ -7,15 +7,17 @@ public class CartItemResponse {
     private Integer quantity;
     private Double lineTotal;
     private Integer availableStock;
+    private String imageUrl;
 
     public CartItemResponse(Long productId, String productTitle, Double price, Integer quantity,
-                             Double lineTotal, Integer availableStock) {
+                             Double lineTotal, Integer availableStock, String imageUrl) {
         this.productId = productId;
         this.productTitle = productTitle;
         this.price = price;
         this.quantity = quantity;
         this.lineTotal = lineTotal;
         this.availableStock = availableStock;
+        this.imageUrl = imageUrl;
     }
 
     public Long getProductId() { return productId; }
@@ -30,4 +32,6 @@ public class CartItemResponse {
     public void setLineTotal(Double lineTotal) { this.lineTotal = lineTotal; }
     public Integer getAvailableStock() { return availableStock; }
     public void setAvailableStock(Integer availableStock) { this.availableStock = availableStock; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

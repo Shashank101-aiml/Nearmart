@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import * as productService from '../../services/productService'
 import ProductCardV2 from '../../components/common/ProductCardV2'
 import ProductFilters from '../../components/common/ProductFilters'
@@ -10,14 +11,20 @@ export default function CustomerHome() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const { cart, busyProductId, itemErrors, addItem, incrementItem, decrementItem } = useCart()
+  const [searchParams] = useSearchParams()
 
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('q') || '')
   const [selectedVendorId, setSelectedVendorId] = useState('')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [inStockOnly, setInStockOnly] = useState(false)
 
   useInventorySync(setProducts)
+
+  useEffect(() => {
+    const q = searchParams.get('q')
+    if (q) Promise.resolve().then(() => setSearchTerm(q))
+  }, [searchParams])
 
   useEffect(() => {
     productService
@@ -68,7 +75,7 @@ export default function CustomerHome() {
   const quantityFor = (productId) => cart?.items.find((item) => item.productId === productId)?.quantity || 0
 
   return (
-    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-8 pt-6 pb-12 text-left">
       <div className="mb-6">
         <h1 className="m-0 mb-1 text-[28px] text-left">Browse products</h1>
       </div>

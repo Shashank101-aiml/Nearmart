@@ -129,7 +129,8 @@ public class CartServiceImpl implements CartService {
                 product.getPrice(),
                 item.getQuantity(),
                 lineTotal,
-                currentStock(product.getId())
+                currentStock(product.getId()),
+                product.getImageUrl()
             );
         }).toList();
 

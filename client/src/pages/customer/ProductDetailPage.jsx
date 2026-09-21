@@ -31,7 +31,7 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 px-8 pt-6 pb-12 text-left">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-8 pt-6 pb-12 text-left">
         <p>Loading product...</p>
       </div>
     )
@@ -39,7 +39,7 @@ export default function ProductDetailPage() {
 
   if (error || !product) {
     return (
-      <div className="flex-1 px-8 pt-6 pb-12 text-left">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-8 pt-6 pb-12 text-left">
         <div className="mb-6">
           <Link to="/customer">&larr; Back to catalog</Link>
         </div>
@@ -54,7 +54,7 @@ export default function ProductDetailPage() {
     : 0
 
   return (
-    <div className="flex-1 px-8 pt-6 pb-12 text-left">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-8 pt-6 pb-12 text-left">
       <div className="mb-6">
         <Link to="/customer">&larr; Back to catalog</Link>
       </div>

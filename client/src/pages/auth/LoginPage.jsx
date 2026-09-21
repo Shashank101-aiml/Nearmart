@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../hooks/useToast'
 
 export default function LoginPage() {
   const { login } = useAuth()
+  const { showToast } = useToast()
   const [form, setForm] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -25,7 +27,9 @@ export default function LoginPage() {
     try {
       await login(form)
     } catch (err) {
-      setError(err.message || 'Login failed')
+      const message = err.message || 'Login failed'
+      setError(message)
+      showToast(message, 'error')
     } finally {
       setSubmitting(false)
     }
@@ -36,7 +40,7 @@ export default function LoginPage() {
       <span className="text-2xl font-bold text-accent">Nearmart</span>
       <form
         onSubmit={handleSubmit}
-        className="flex w-full max-w-[380px] flex-col gap-3.5 rounded-lg border border-border bg-bg p-8 text-left"
+        className="flex w-full max-w-[380px] flex-col gap-3.5 rounded-lg border border-border bg-bg p-8 shadow-sm text-left"
       >
         <h1 className="m-0 mb-2 text-[32px] text-center">Log in</h1>
         {error && <p className="mb-1 text-sm text-red-600">{error}</p>}

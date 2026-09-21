@@ -23,7 +23,7 @@ export default function ProductCardV2({
     : 0
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-border bg-bg p-3">
+    <div className="flex flex-col gap-2 rounded-lg border border-border bg-bg p-3 shadow-sm transition hover:shadow-md">
       <Link to={`/customer/products/${product.id}`} className="relative aspect-square w-full overflow-hidden rounded-md bg-code-bg">
         {product.imageUrl ? (
           <img src={product.imageUrl} alt={product.title} className="h-full w-full object-cover" />
