@@ -4,6 +4,7 @@ import com.buildit.enums.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
@@ -28,7 +29,7 @@ public class RegisterRequest {
     @NotBlank
     private String address;
 
-    @Size(max = 20)
+    @Pattern(regexp = "^[0-9]{10}$", message = "Please enter a valid Number")
     private String phoneNumber;
 
     public String getUsername() { return username; }

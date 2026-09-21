@@ -26,6 +26,9 @@ function validate(form) {
     errors.displayName = form.role === 'VENDOR' ? 'Store name is required' : 'Name is required'
   }
   if (!form.address.trim()) errors.address = 'Address is required'
+  if (form.role === 'CUSTOMER' && form.phoneNumber && !/^\d{10}$/.test(form.phoneNumber)) {
+    errors.phoneNumber = 'Please enter a valid Number'
+  }
   return errors
 }
 
@@ -136,13 +139,16 @@ export default function RegisterPage() {
             Phone number (optional — enables quick phone login)
             <input
               name="phoneNumber"
+              type="tel"
               value={form.phoneNumber}
-              onChange={handleChange}
+              onChange={(e) => setForm({ ...form, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })}
               autoComplete="tel"
+              maxLength={10}
               className={fieldClasses}
             />
           </label>
         )}
+        {fieldErrors.phoneNumber && <p className={fieldErrorClasses}>{fieldErrors.phoneNumber}</p>}
 
         <label className={labelClasses}>
           Password

@@ -87,8 +87,8 @@ function OtpLoginForm() {
     e.preventDefault()
     setError('')
 
-    if (!phoneNumber.trim()) {
-      setError('Phone number is required')
+    if (!/^\d{10}$/.test(phoneNumber.trim())) {
+      setError('Please enter a valid Number')
       return
     }
 
@@ -136,8 +136,9 @@ function OtpLoginForm() {
             name="phoneNumber"
             type="tel"
             value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
             autoComplete="tel"
+            maxLength={10}
             className={fieldClasses}
           />
         </label>
