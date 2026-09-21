@@ -35,8 +35,8 @@ export default function Header() {
   const [locationModalOpen, setLocationModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const links = NAV_LINKS[user.role] || []
-  const isCustomer = user.role === 'CUSTOMER'
+  const links = user ? NAV_LINKS[user.role] || [] : []
+  const showCustomerChrome = !user || user.role === 'CUSTOMER'
 
   const handleSearchSubmit = (e) => {
     e.preventDefault()
@@ -48,7 +48,7 @@ export default function Header() {
     <header className="sticky top-0 z-10 border-b border-border bg-bg shadow-sm">
       <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-8 py-3">
         <div className="flex items-center gap-4">
-          <NavLink to={roleHomePath(user.role)} className="flex items-center gap-2.5">
+          <NavLink to={user ? roleHomePath(user.role) : '/customer'} className="flex items-center gap-2.5">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-accent-dark to-accent text-lg font-black text-white shadow-sm">
               N
             </div>
@@ -60,7 +60,7 @@ export default function Header() {
             </div>
           </NavLink>
 
-          {isCustomer && (
+          {showCustomerChrome && (
             <button
               type="button"
               onClick={() => setLocationModalOpen(true)}
@@ -78,7 +78,7 @@ export default function Header() {
           )}
         </div>
 
-        {isCustomer && (
+        {showCustomerChrome && (
           <form onSubmit={handleSearchSubmit} className="hidden max-w-xl flex-1 md:flex">
             <div className="relative w-full">
               <i className="fa-solid fa-magnifying-glass absolute top-1/2 left-4 -translate-y-1/2 text-text" />
@@ -101,7 +101,7 @@ export default function Header() {
               </NavLink>
             ))}
           </nav>
-          {isCustomer && (
+          {showCustomerChrome && (
             <button
               type="button"
               onClick={openCart}
@@ -114,16 +114,29 @@ export default function Header() {
               </span>
             </button>
           )}
-          <span className="hidden text-sm text-text sm:inline">
-            {user.username} ({user.role})
-          </span>
-          <button
-            type="button"
-            onClick={logout}
-            className="cursor-pointer rounded-xl border border-border bg-bg px-3.5 py-2 text-sm font-semibold text-text-h hover:bg-code-bg"
-          >
-            Log out
-          </button>
+          {user ? (
+            <>
+              <span className="hidden text-sm text-text sm:inline">
+                {user.username} ({user.role})
+              </span>
+              <button
+                type="button"
+                onClick={logout}
+                className="cursor-pointer rounded-xl border border-border bg-bg px-3.5 py-2 text-sm font-semibold text-text-h hover:bg-code-bg"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-bg px-3.5 py-2 text-sm font-semibold text-text-h hover:bg-code-bg"
+            >
+              <i className="fa-solid fa-user" />
+              Sign In
+            </button>
+          )}
         </div>
       </div>
 

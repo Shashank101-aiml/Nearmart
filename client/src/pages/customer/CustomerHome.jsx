@@ -4,6 +4,7 @@ import * as productService from '../../services/productService'
 import ProductCardV2 from '../../components/common/ProductCardV2'
 import ProductFilters from '../../components/common/ProductFilters'
 import CategoryGrid from '../../components/common/CategoryGrid'
+import HeroBanner from '../../components/common/HeroBanner'
 import { useInventorySync } from '../../hooks/useInventorySync'
 import { useCart } from '../../hooks/useCart'
 
@@ -84,7 +85,9 @@ export default function CustomerHome() {
 
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto px-8 pt-6 pb-12 text-left">
-      <div className="mb-6">
+      <HeroBanner />
+
+      <div id="catalog" className="mt-10 mb-6 scroll-mt-20">
         <h1 className="m-0 mb-1 text-[28px] text-left">Browse products</h1>
       </div>
 

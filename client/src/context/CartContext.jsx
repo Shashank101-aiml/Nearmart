@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
 import * as cartService from '../services/cartService'
@@ -7,6 +8,7 @@ import { CartContext } from './cart-context'
 export function CartProvider({ children }) {
   const { isAuthenticated, user } = useAuth()
   const { showToast } = useToast()
+  const navigate = useNavigate()
   const [cart, setCart] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [busyProductId, setBusyProductId] = useState(null)
@@ -37,14 +39,26 @@ export function CartProvider({ children }) {
 
   const quantityFor = (productId) => cart?.items.find((item) => item.productId === productId)?.quantity || 0
 
-  const addItem = (productId) => runMutation(productId, () => cartService.addItem(productId, 1))
+  const requireAuth = () => {
+    if (isAuthenticated) return true
+    showToast('Please log in to add items to your cart', 'info')
+    navigate('/login')
+    return false
+  }
+
+  const addItem = (productId) => {
+    if (!requireAuth()) return
+    return runMutation(productId, () => cartService.addItem(productId, 1))
+  }
 
   const incrementItem = (productId) => {
+    if (!requireAuth()) return
     const nextQuantity = quantityFor(productId) + 1
     return runMutation(productId, () => cartService.updateItem(productId, nextQuantity))
   }
 
   const decrementItem = (productId) => {
+    if (!requireAuth()) return
     const currentQuantity = quantityFor(productId)
     if (currentQuantity <= 1) {
       return runMutation(productId, () => cartService.removeItem(productId))

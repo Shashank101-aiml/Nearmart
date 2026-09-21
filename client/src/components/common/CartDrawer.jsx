@@ -22,7 +22,7 @@ export default function CartDrawer() {
   const [error, setError] = useState('')
   const [checkingOut, setCheckingOut] = useState(false)
 
-  if (user.role !== 'CUSTOMER' || !isOpen) {
+  if ((user && user.role !== 'CUSTOMER') || !isOpen) {
     return null
   }
 

@@ -18,7 +18,7 @@ import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
 
 function HomeRedirect() {
   const { isAuthenticated, user } = useAuth()
-  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!isAuthenticated) return <Navigate to="/customer" replace />
   return <Navigate to={roleHomePath(user.role)} replace />
 }
 
@@ -51,7 +51,7 @@ export default function AppRoutes() {
       <Route
         path="/customer"
         element={
-          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+          <ProtectedRoute allowedRoles={['CUSTOMER']} requireAuth={false}>
             <CustomerHome />
           </ProtectedRoute>
         }
@@ -59,7 +59,7 @@ export default function AppRoutes() {
       <Route
         path="/customer/vendors/:vendorId"
         element={
-          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+          <ProtectedRoute allowedRoles={['CUSTOMER']} requireAuth={false}>
             <VendorStorefront />
           </ProtectedRoute>
         }
@@ -67,7 +67,7 @@ export default function AppRoutes() {
       <Route
         path="/customer/products/:id"
         element={
-          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+          <ProtectedRoute allowedRoles={['CUSTOMER']} requireAuth={false}>
             <ProductDetailPage />
           </ProtectedRoute>
         }
