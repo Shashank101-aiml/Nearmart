@@ -1,5 +1,6 @@
 package com.buildit.service.implementation;
 
+import com.buildit.dto.request.UpdateVendorRequest;
 import com.buildit.dto.response.AdminOrderResponse;
 import com.buildit.dto.response.AdminOrderSummaryResponse;
 import com.buildit.dto.response.AdminUserResponse;
@@ -242,6 +243,35 @@ class AdminServiceImplTest {
         when(userRepository.findById(404L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminService.setUserEnabled(1L, 404L, false))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void updateVendorSavesNewStoreNameAndLocation() {
+        Vendor vendor = vendorFor(userWithId(9L, "cartvendor1", UserRole.VENDOR, true), "Cart Vendor Store");
+        UpdateVendorRequest request = new UpdateVendorRequest();
+        request.setStoreName("Loyal Mart Supermarket");
+        request.setLocation("HSR Layout, Sector 3");
+
+        when(vendorRepository.findById(9L)).thenReturn(Optional.of(vendor));
+        when(vendorRepository.save(any(Vendor.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AdminVendorResponse response = adminService.updateVendor(9L, request);
+
+        assertThat(response.getStoreName()).isEqualTo("Loyal Mart Supermarket");
+        assertThat(response.getLocation()).isEqualTo("HSR Layout, Sector 3");
+        verify(vendorRepository).save(argThat(v ->
+            v.getStoreName().equals("Loyal Mart Supermarket") && v.getLocation().equals("HSR Layout, Sector 3")));
+    }
+
+    @Test
+    void updateVendorThrowsWhenVendorNotFound() {
+        UpdateVendorRequest request = new UpdateVendorRequest();
+        request.setStoreName("New Name");
+        request.setLocation("Somewhere");
+        when(vendorRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminService.updateVendor(404L, request))
             .isInstanceOf(ResourceNotFoundException.class);
     }
 }

@@ -1,5 +1,6 @@
 package com.buildit.service;
 
+import com.buildit.dto.request.UpdateVendorRequest;
 import com.buildit.dto.response.AdminOrderResponse;
 import com.buildit.dto.response.AdminOrderSummaryResponse;
 import com.buildit.dto.response.AdminUserResponse;
@@ -11,6 +12,7 @@ public interface AdminService {
     List<AdminUserResponse> listUsers();
     List<AdminVendorResponse> listVendors();
     AdminUserResponse setUserEnabled(Long actingAdminId, Long targetUserId, boolean enabled);
+    AdminVendorResponse updateVendor(Long vendorId, UpdateVendorRequest request);
     List<AdminOrderSummaryResponse> listAllOrders();
     AdminOrderResponse getOrder(Long orderId);
 }

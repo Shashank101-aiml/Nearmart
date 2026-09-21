@@ -1,5 +1,6 @@
 package com.buildit.service.implementation;
 
+import com.buildit.dto.request.UpdateVendorRequest;
 import com.buildit.dto.response.AdminOrderItemResponse;
 import com.buildit.dto.response.AdminOrderResponse;
 import com.buildit.dto.response.AdminOrderSummaryResponse;
@@ -8,6 +9,7 @@ import com.buildit.dto.response.AdminVendorResponse;
 import com.buildit.entity.Order;
 import com.buildit.entity.OrderItem;
 import com.buildit.entity.User;
+import com.buildit.entity.Vendor;
 import com.buildit.exception.BadRequestException;
 import com.buildit.exception.ResourceNotFoundException;
 import com.buildit.repository.OrderItemRepository;
@@ -15,6 +17,7 @@ import com.buildit.repository.OrderRepository;
 import com.buildit.repository.UserRepository;
 import com.buildit.repository.VendorRepository;
 import com.buildit.service.AdminService;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +68,20 @@ public class AdminServiceImpl implements AdminService {
 
         return new AdminUserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole().name(),
             user.getEnabled());
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "products", allEntries = true)
+    public AdminVendorResponse updateVendor(Long vendorId, UpdateVendorRequest request) {
+        Vendor vendor = vendorRepository.findById(vendorId)
+            .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
+        vendor.setStoreName(request.getStoreName());
+        vendor.setLocation(request.getLocation());
+        vendor = vendorRepository.save(vendor);
+
+        return new AdminVendorResponse(vendor.getId(), vendor.getUser().getUsername(), vendor.getUser().getEmail(),
+            vendor.getUser().getEnabled(), vendor.getStoreName(), vendor.getLocation());
     }
 
     @Override

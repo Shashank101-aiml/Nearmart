@@ -12,6 +12,10 @@ export function listVendors() {
   return api.get('/admin/vendors').then((res) => res.data)
 }
 
+export function updateVendor(id, payload) {
+  return api.put(`/admin/vendors/${id}`, payload).then((res) => res.data)
+}
+
 export function listOrders() {
   return api.get('/admin/orders').then((res) => res.data)
 }

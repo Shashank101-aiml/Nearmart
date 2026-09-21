@@ -2,6 +2,7 @@ package com.buildit.controller;
 
 import com.buildit.dto.request.UpdateProductStatusRequest;
 import com.buildit.dto.request.UpdateUserStatusRequest;
+import com.buildit.dto.request.UpdateVendorRequest;
 import com.buildit.dto.response.AdminOrderResponse;
 import com.buildit.dto.response.AdminOrderSummaryResponse;
 import com.buildit.dto.response.AdminUserResponse;
@@ -16,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,6 +51,12 @@ public class AdminController {
     @GetMapping("/vendors")
     public ResponseEntity<List<AdminVendorResponse>> listVendors() {
         return ResponseEntity.ok(adminService.listVendors());
+    }
+
+    @PutMapping("/vendors/{id}")
+    public ResponseEntity<AdminVendorResponse> updateVendor(@PathVariable Long id,
+                                                              @Valid @RequestBody UpdateVendorRequest request) {
+        return ResponseEntity.ok(adminService.updateVendor(id, request));
     }
 
     @GetMapping("/orders")
