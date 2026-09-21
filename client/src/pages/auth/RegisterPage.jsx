@@ -13,6 +13,7 @@ const initialForm = {
   role: 'CUSTOMER',
   displayName: '',
   address: '',
+  phoneNumber: '',
 }
 
 function validate(form) {
@@ -57,6 +58,7 @@ export default function RegisterPage() {
         role: form.role,
         displayName: form.displayName,
         address: form.address,
+        phoneNumber: form.role === 'CUSTOMER' ? form.phoneNumber || null : null,
       }
       await register(payload)
     } catch (err) {
@@ -128,6 +130,19 @@ export default function RegisterPage() {
           <input name="address" value={form.address} onChange={handleChange} className={fieldClasses} />
         </label>
         {fieldErrors.address && <p className={fieldErrorClasses}>{fieldErrors.address}</p>}
+
+        {form.role === 'CUSTOMER' && (
+          <label className={labelClasses}>
+            Phone number (optional — enables quick phone login)
+            <input
+              name="phoneNumber"
+              value={form.phoneNumber}
+              onChange={handleChange}
+              autoComplete="tel"
+              className={fieldClasses}
+            />
+          </label>
+        )}
 
         <label className={labelClasses}>
           Password

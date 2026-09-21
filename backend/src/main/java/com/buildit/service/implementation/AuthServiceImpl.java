@@ -1,8 +1,11 @@
 package com.buildit.service.implementation;
 
 import com.buildit.dto.request.LoginRequest;
+import com.buildit.dto.request.OtpRequestRequest;
+import com.buildit.dto.request.OtpVerifyRequest;
 import com.buildit.dto.request.RegisterRequest;
 import com.buildit.dto.response.AuthResponse;
+import com.buildit.dto.response.OtpRequestResponse;
 import com.buildit.entity.Customer;
 import com.buildit.entity.User;
 import com.buildit.entity.Vendor;
@@ -15,6 +18,7 @@ import com.buildit.repository.VendorRepository;
 import com.buildit.security.CustomUserDetails;
 import com.buildit.security.JwtTokenProvider;
 import com.buildit.service.AuthService;
+import com.buildit.service.OtpService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,19 +35,22 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final OtpService otpService;
 
     public AuthServiceImpl(UserRepository userRepository,
                             CustomerRepository customerRepository,
                             VendorRepository vendorRepository,
                             PasswordEncoder passwordEncoder,
                             AuthenticationManager authenticationManager,
-                            JwtTokenProvider jwtTokenProvider) {
+                            JwtTokenProvider jwtTokenProvider,
+                            OtpService otpService) {
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.vendorRepository = vendorRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.otpService = otpService;
     }
 
     @Override
@@ -58,12 +65,17 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email is already registered");
         }
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()
+            && userRepository.findByPhoneNumber(request.getPhoneNumber()).isPresent()) {
+            throw new DuplicateResourceException("Phone number is already registered");
+        }
 
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
+        user.setPhoneNumber(request.getPhoneNumber());
 
         try {
             user = userRepository.save(user);
@@ -97,6 +109,31 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtTokenProvider.generateToken(authentication);
         return new AuthResponse(token, userDetails.getUser().getId(), userDetails.getUsername(),
             userDetails.getUser().getRole().name());
+    }
+
+    @Override
+    public OtpRequestResponse requestOtp(OtpRequestRequest request) {
+        User user = findOtpEligibleUser(request.getPhoneNumber());
+        String code = otpService.generateAndStore(user.getPhoneNumber());
+        return new OtpRequestResponse("OTP generated (simulated delivery, no SMS sent)", code);
+    }
+
+    @Override
+    public AuthResponse verifyOtp(OtpVerifyRequest request) {
+        User user = findOtpEligibleUser(request.getPhoneNumber());
+        if (!otpService.verifyAndConsume(user.getPhoneNumber(), request.getCode())) {
+            throw new BadRequestException("Invalid or expired OTP");
+        }
+        return buildAuthResponse(user);
+    }
+
+    private User findOtpEligibleUser(String phoneNumber) {
+        User user = userRepository.findByPhoneNumber(phoneNumber)
+            .orElseThrow(() -> new BadRequestException("No customer account found for this phone number"));
+        if (user.getRole() != UserRole.CUSTOMER) {
+            throw new BadRequestException("No customer account found for this phone number");
+        }
+        return user;
     }
 
     private AuthResponse buildAuthResponse(User user) {

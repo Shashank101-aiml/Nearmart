@@ -42,6 +42,12 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  const loginWithOtp = async (phoneNumber, code) => {
+    const data = await authService.verifyOtp({ phoneNumber, code })
+    applyAuthResponse(data)
+    return data
+  }
+
   const logout = () => setAuth(null)
 
   const value = {
@@ -50,6 +56,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(auth?.token),
     login,
     register,
+    loginWithOtp,
     logout,
   }
 
