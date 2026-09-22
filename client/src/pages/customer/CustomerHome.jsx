@@ -5,7 +5,6 @@ import ProductCardV2 from '../../components/common/ProductCardV2'
 import ProductFilters from '../../components/common/ProductFilters'
 import CategoryGrid from '../../components/common/CategoryGrid'
 import HeroBanner from '../../components/common/HeroBanner'
-import NearbyStoresSection from '../../components/common/NearbyStoresSection'
 import { useInventorySync } from '../../hooks/useInventorySync'
 import { useCart } from '../../hooks/useCart'
 
@@ -138,8 +137,6 @@ export default function CustomerHome() {
           />
         ))}
       </div>
-
-      <NearbyStoresSection />
     </div>
   )
 }
