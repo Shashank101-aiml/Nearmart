@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import * as adminService from '../../services/adminService'
 import { connectAdminOrders } from '../../services/adminOrderSocket'
 import { badgeClassFor, fulfillmentBadgeClassFor } from '../../utils/badges'
+import { formatPrice } from '../../utils/currency'
 import { useAuth } from '../../hooks/useAuth'
 
 function groupByVendor(items) {
@@ -84,7 +85,7 @@ export default function AdminOrdersPage() {
                   <span className={badgeClassFor(order.status)}>{order.status}</span>
                 </div>
                 <p>{new Date(order.createdAt).toLocaleString()}</p>
-                <p>${order.total.toFixed(2)}</p>
+                <p>{formatPrice(order.total)}</p>
               </div>
               <p className="mt-1.5 text-sm text-text">
                 Customer: {order.customerName} ({order.customerUsername})
@@ -121,9 +122,9 @@ export default function AdminOrdersPage() {
                               <span>{item.productTitle}</span>
                             </div>
                             <span>
-                              {item.quantity} &times; ${item.unitPrice.toFixed(2)}
+                              {item.quantity} &times; {formatPrice(item.unitPrice)}
                             </span>
-                            <span>${item.lineTotal.toFixed(2)}</span>
+                            <span>{formatPrice(item.lineTotal)}</span>
                             <span className={fulfillmentBadgeClassFor(item.fulfillmentStatus)}>
                               {item.fulfillmentStatus}
                             </span>

@@ -5,6 +5,7 @@ import { useCart } from '../../hooks/useCart'
 import QuantityStepper from './QuantityStepper'
 import * as orderService from '../../services/orderService'
 import { openRazorpayCheckout } from '../../utils/razorpayCheckout'
+import { formatPrice } from '../../utils/currency'
 
 export default function CartDrawer() {
   const { user } = useAuth()
@@ -87,7 +88,7 @@ export default function CartDrawer() {
                     </div>
                     <div className="flex-1">
                       <h3 className="m-0 mb-1 text-sm text-text-h">{item.productTitle}</h3>
-                      <p className="text-xs text-text">${item.price.toFixed(2)} each</p>
+                      <p className="text-xs text-text">{formatPrice(item.price)} each</p>
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <QuantityStepper
                           quantity={item.quantity}
@@ -95,7 +96,7 @@ export default function CartDrawer() {
                           onDecrement={() => decrementItem(item.productId)}
                           disabled={busyProductId === item.productId}
                         />
-                        <p className="font-semibold text-accent">${item.lineTotal.toFixed(2)}</p>
+                        <p className="font-semibold text-accent">{formatPrice(item.lineTotal)}</p>
                       </div>
                       <button
                         type="button"
@@ -121,19 +122,19 @@ export default function CartDrawer() {
                   <>
                     <div className="flex justify-between">
                       <span>Item Subtotal</span>
-                      <span className="font-bold text-text-h">${cart.total.toFixed(2)}</span>
+                      <span className="font-bold text-text-h">{formatPrice(cart.total)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Delivery Fee</span>
-                      <span className="font-bold text-accent">{deliveryFee === 0 ? 'FREE' : `$${deliveryFee.toFixed(2)}`}</span>
+                      <span className="font-bold text-accent">{deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Handling Charge</span>
-                      <span className="font-bold text-text-h">${handling.toFixed(2)}</span>
+                      <span className="font-bold text-text-h">{formatPrice(handling)}</span>
                     </div>
                     <div className="flex items-center justify-between border-t border-border pt-2 text-base font-black text-text-h">
                       <span>To Pay</span>
-                      <span className="text-accent">${grandTotal.toFixed(2)}</span>
+                      <span className="text-accent">{formatPrice(grandTotal)}</span>
                     </div>
                     <button
                       type="button"
@@ -141,7 +142,7 @@ export default function CartDrawer() {
                       disabled={checkingOut}
                       className="mt-2 cursor-pointer rounded-md border-none bg-accent px-4 py-3 font-bold text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {checkingOut ? 'Placing order...' : `Place Order · $${grandTotal.toFixed(2)}`}
+                      {checkingOut ? 'Placing order...' : `Place Order · ${formatPrice(grandTotal)}`}
                     </button>
                   </>
                 )

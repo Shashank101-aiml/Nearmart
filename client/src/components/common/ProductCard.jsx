@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { formatPrice } from '../../utils/currency'
 
 export default function ProductCard({ product, showStoreLink = false, onAddToCart, adding, addError }) {
   const [expanded, setExpanded] = useState(false)
@@ -10,7 +11,7 @@ export default function ProductCard({ product, showStoreLink = false, onAddToCar
   return (
     <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-bg p-4">
       <h3 className="m-0 text-lg text-text-h">{product.title}</h3>
-      <p className="font-semibold text-accent">${product.price.toFixed(2)}</p>
+      <p className="font-semibold text-accent">{formatPrice(product.price)}</p>
       {showStoreLink && product.vendorId && (
         <p>
           <Link to={`/customer/vendors/${product.vendorId}`} className="text-text-h underline">

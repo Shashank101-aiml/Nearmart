@@ -38,8 +38,8 @@ export default function HeroBanner() {
               <p className="m-0 text-[10px] text-white/70 uppercase">Speed</p>
             </div>
             <div>
-              <p className="m-0 text-lg font-black">$0</p>
-              <p className="m-0 text-[10px] text-white/70 uppercase">Above $199</p>
+              <p className="m-0 text-lg font-black">&#8377;0</p>
+              <p className="m-0 text-[10px] text-white/70 uppercase">Above &#8377;199</p>
             </div>
             <div>
               <p className="m-0 text-lg font-black">4.95&#9733;</p>

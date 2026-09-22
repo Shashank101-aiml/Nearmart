@@ -5,6 +5,7 @@ import * as paymentService from '../../services/paymentService'
 import { openRazorpayCheckout } from '../../utils/razorpayCheckout'
 import { connectTracking } from '../../services/trackingSocket'
 import { badgeClassFor, fulfillmentBadgeClassFor } from '../../utils/badges'
+import { formatPrice } from '../../utils/currency'
 import { useAuth } from '../../hooks/useAuth'
 
 export default function OrdersPage() {
@@ -91,7 +92,7 @@ export default function OrdersPage() {
                 <span className={badgeClassFor(order.status)}>{order.status}</span>
               </div>
               <p>{new Date(order.createdAt).toLocaleString()}</p>
-              <p>${order.total.toFixed(2)}</p>
+              <p>{formatPrice(order.total)}</p>
             </div>
             <button
               type="button"
@@ -125,9 +126,9 @@ export default function OrdersPage() {
                       <span>{item.productTitle}</span>
                     </div>
                     <span>
-                      {item.quantity} &times; ${item.unitPrice.toFixed(2)}
+                      {item.quantity} &times; {formatPrice(item.unitPrice)}
                     </span>
-                    <span>${item.lineTotal.toFixed(2)}</span>
+                    <span>{formatPrice(item.lineTotal)}</span>
                     <span className={fulfillmentBadgeClassFor(item.fulfillmentStatus)}>
                       {item.fulfillmentStatus}
                     </span>

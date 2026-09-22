@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import * as vendorOrderService from '../../services/vendorOrderService'
 import { badgeClassFor, fulfillmentBadgeClassFor } from '../../utils/badges'
+import { formatPrice } from '../../utils/currency'
 
 export default function VendorOrdersPage() {
   const [orders, setOrders] = useState([])
@@ -59,7 +60,7 @@ export default function VendorOrdersPage() {
                 <span className={badgeClassFor(order.status)}>{order.status}</span>
               </div>
               <p>{new Date(order.createdAt).toLocaleString()}</p>
-              <p>${order.vendorSubtotal.toFixed(2)}</p>
+              <p>{formatPrice(order.vendorSubtotal)}</p>
             </div>
             <p className="mt-1.5 text-sm text-text">Customer: {order.customerName}</p>
             <button
@@ -84,9 +85,9 @@ export default function VendorOrdersPage() {
                       <span>{item.productTitle}</span>
                     </div>
                     <span>
-                      {item.quantity} &times; ${item.unitPrice.toFixed(2)}
+                      {item.quantity} &times; {formatPrice(item.unitPrice)}
                     </span>
-                    <span>${item.lineTotal.toFixed(2)}</span>
+                    <span>{formatPrice(item.lineTotal)}</span>
                     <span className={fulfillmentBadgeClassFor(item.fulfillmentStatus)}>
                       {item.fulfillmentStatus}
                     </span>
