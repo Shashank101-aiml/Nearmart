@@ -10,6 +10,7 @@ export default function AdminVendorsPage() {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({ storeName: '', location: '', username: '' })
   const [saving, setSaving] = useState(false)
+  const [busyId, setBusyId] = useState(null)
 
   useEffect(() => {
     adminService
@@ -45,6 +46,24 @@ export default function AdminVendorsPage() {
       setError(err.message || 'Failed to update vendor')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleToggleEnabled = async (vendor) => {
+    const nextEnabled = !vendor.enabled
+    if (!nextEnabled && !window.confirm(`Disable ${vendor.storeName}? Their products will remain visible but they will no longer be able to log in.`)) {
+      return
+    }
+
+    setError('')
+    setBusyId(vendor.id)
+    try {
+      const updated = await adminService.setUserEnabled(vendor.id, nextEnabled)
+      setVendors(vendors.map((v) => (v.id === vendor.id ? { ...v, enabled: updated.enabled } : v)))
+    } catch (err) {
+      setError(err.message || 'Failed to update vendor status')
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -133,13 +152,23 @@ export default function AdminVendorsPage() {
               >
                 {vendor.enabled ? 'Enabled' : 'Disabled'}
               </p>
-              <button
-                type="button"
-                onClick={() => startEdit(vendor)}
-                className="mt-1 cursor-pointer self-start rounded-md border border-border bg-bg px-2.5 py-1.5 text-xs text-text-h"
-              >
-                Edit
-              </button>
+              <div className="mt-1 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => startEdit(vendor)}
+                  className="cursor-pointer self-start rounded-md border border-border bg-bg px-2.5 py-1.5 text-xs text-text-h"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggleEnabled(vendor)}
+                  disabled={busyId === vendor.id}
+                  className="cursor-pointer self-start rounded-md border border-border bg-bg px-2.5 py-1.5 text-xs text-text-h disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {busyId === vendor.id ? 'Saving...' : vendor.enabled ? 'Disable' : 'Enable'}
+                </button>
+              </div>
             </div>
           )
         )}
