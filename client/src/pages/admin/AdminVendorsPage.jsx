@@ -8,7 +8,7 @@ export default function AdminVendorsPage() {
   const [error, setError] = useState('')
 
   const [editingId, setEditingId] = useState(null)
-  const [editForm, setEditForm] = useState({ storeName: '', location: '' })
+  const [editForm, setEditForm] = useState({ storeName: '', location: '', username: '' })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -21,12 +21,12 @@ export default function AdminVendorsPage() {
 
   const startEdit = (vendor) => {
     setEditingId(vendor.id)
-    setEditForm({ storeName: vendor.storeName, location: vendor.location })
+    setEditForm({ storeName: vendor.storeName, location: vendor.location, username: vendor.username })
   }
 
   const cancelEdit = () => {
     setEditingId(null)
-    setEditForm({ storeName: '', location: '' })
+    setEditForm({ storeName: '', location: '', username: '' })
   }
 
   const handleEditChange = (e) => {
@@ -87,6 +87,18 @@ export default function AdminVendorsPage() {
                   value={editForm.location}
                   onChange={handleEditChange}
                   required
+                  className={fieldClasses}
+                />
+              </label>
+              <label className={labelClasses}>
+                Username
+                <input
+                  name="username"
+                  value={editForm.username}
+                  onChange={handleEditChange}
+                  required
+                  minLength={3}
+                  maxLength={50}
                   className={fieldClasses}
                 />
               </label>

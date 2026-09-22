@@ -11,6 +11,7 @@ import com.buildit.entity.OrderItem;
 import com.buildit.entity.User;
 import com.buildit.entity.Vendor;
 import com.buildit.exception.BadRequestException;
+import com.buildit.exception.DuplicateResourceException;
 import com.buildit.exception.ResourceNotFoundException;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.repository.OrderRepository;
@@ -79,6 +80,16 @@ public class AdminServiceImpl implements AdminService {
         vendor.setStoreName(request.getStoreName());
         vendor.setLocation(request.getLocation());
         vendor = vendorRepository.save(vendor);
+
+        String newUsername = request.getUsername();
+        if (newUsername != null && !newUsername.equals(vendor.getUser().getUsername())) {
+            if (userRepository.existsByUsername(newUsername)) {
+                throw new DuplicateResourceException("Username already taken");
+            }
+            User user = vendor.getUser();
+            user.setUsername(newUsername);
+            userRepository.save(user);
+        }
 
         return new AdminVendorResponse(vendor.getId(), vendor.getUser().getUsername(), vendor.getUser().getEmail(),
             vendor.getUser().getEnabled(), vendor.getStoreName(), vendor.getLocation());

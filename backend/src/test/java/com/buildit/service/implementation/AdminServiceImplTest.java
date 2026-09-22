@@ -14,6 +14,7 @@ import com.buildit.entity.Vendor;
 import com.buildit.enums.OrderStatus;
 import com.buildit.enums.UserRole;
 import com.buildit.exception.BadRequestException;
+import com.buildit.exception.DuplicateResourceException;
 import com.buildit.exception.ResourceNotFoundException;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.repository.OrderRepository;
@@ -273,5 +274,42 @@ class AdminServiceImplTest {
 
         assertThatThrownBy(() -> adminService.updateVendor(404L, request))
             .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void updateVendorRenamesUsernameWhenProvidedAndAvailable() {
+        Vendor vendor = vendorFor(userWithId(9L, "acmestore", UserRole.VENDOR, true), "Acme Store");
+        UpdateVendorRequest request = new UpdateVendorRequest();
+        request.setStoreName("Metro Fresh Superstore");
+        request.setLocation("HSR Layout, Sector 3");
+        request.setUsername("Vendor A");
+
+        when(vendorRepository.findById(9L)).thenReturn(Optional.of(vendor));
+        when(vendorRepository.save(any(Vendor.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.existsByUsername("Vendor A")).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AdminVendorResponse response = adminService.updateVendor(9L, request);
+
+        assertThat(response.getUsername()).isEqualTo("Vendor A");
+        verify(userRepository).save(argThat(u -> u.getUsername().equals("Vendor A")));
+    }
+
+    @Test
+    void updateVendorThrowsWhenUsernameAlreadyTaken() {
+        Vendor vendor = vendorFor(userWithId(9L, "acmestore", UserRole.VENDOR, true), "Acme Store");
+        UpdateVendorRequest request = new UpdateVendorRequest();
+        request.setStoreName("Metro Fresh Superstore");
+        request.setLocation("HSR Layout, Sector 3");
+        request.setUsername("cartvendor1");
+
+        when(vendorRepository.findById(9L)).thenReturn(Optional.of(vendor));
+        when(vendorRepository.save(any(Vendor.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.existsByUsername("cartvendor1")).thenReturn(true);
+
+        assertThatThrownBy(() -> adminService.updateVendor(9L, request))
+            .isInstanceOf(DuplicateResourceException.class);
+
+        verify(userRepository, never()).save(any(User.class));
     }
 }
