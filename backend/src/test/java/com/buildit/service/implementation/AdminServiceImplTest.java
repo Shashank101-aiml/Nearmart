@@ -16,8 +16,12 @@ import com.buildit.enums.UserRole;
 import com.buildit.exception.BadRequestException;
 import com.buildit.exception.DuplicateResourceException;
 import com.buildit.exception.ResourceNotFoundException;
+import com.buildit.repository.CartRepository;
+import com.buildit.repository.CustomerRepository;
+import com.buildit.repository.NotificationRepository;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.repository.OrderRepository;
+import com.buildit.repository.ProductRepository;
 import com.buildit.repository.UserRepository;
 import com.buildit.repository.VendorRepository;
 import org.junit.jupiter.api.Test;
@@ -40,6 +44,10 @@ class AdminServiceImplTest {
 
     @Mock private UserRepository userRepository;
     @Mock private VendorRepository vendorRepository;
+    @Mock private CustomerRepository customerRepository;
+    @Mock private CartRepository cartRepository;
+    @Mock private NotificationRepository notificationRepository;
+    @Mock private ProductRepository productRepository;
     @Mock private OrderRepository orderRepository;
     @Mock private OrderItemRepository orderItemRepository;
 
@@ -114,6 +122,17 @@ class AdminServiceImplTest {
         assertThat(results.get(0).getEnabled()).isTrue();
         assertThat(results.get(1).getRole()).isEqualTo("VENDOR");
         assertThat(results.get(1).getEnabled()).isFalse();
+    }
+
+    @Test
+    void listUsersIncludesPhoneNumber() {
+        User customer = userWithId(1L, "jdoe", UserRole.CUSTOMER, true);
+        customer.setPhoneNumber("+919876543210");
+        when(userRepository.findAll()).thenReturn(List.of(customer));
+
+        List<AdminUserResponse> results = adminService.listUsers();
+
+        assertThat(results.get(0).getPhoneNumber()).isEqualTo("+919876543210");
     }
 
     @Test
@@ -311,5 +330,82 @@ class AdminServiceImplTest {
             .isInstanceOf(DuplicateResourceException.class);
 
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void deleteUserRemovesCustomerWithNoOrderHistory() {
+        User user = userWithId(8L, "catcustomer1", UserRole.CUSTOMER, true);
+        Customer customer = customerWithIdAndName(8L, "Cat Customer", user);
+
+        when(userRepository.findById(8L)).thenReturn(Optional.of(user));
+        when(orderRepository.existsByCustomerId(8L)).thenReturn(false);
+        when(cartRepository.findByCustomerId(8L)).thenReturn(Optional.empty());
+        when(customerRepository.findById(8L)).thenReturn(Optional.of(customer));
+
+        adminService.deleteUser(1L, 8L);
+
+        verify(notificationRepository).deleteByCustomerId(8L);
+        verify(customerRepository).delete(customer);
+        verify(userRepository).delete(user);
+    }
+
+    @Test
+    void deleteUserThrowsWhenCustomerHasOrderHistory() {
+        User user = userWithId(13L, "ordercustomer1", UserRole.CUSTOMER, true);
+
+        when(userRepository.findById(13L)).thenReturn(Optional.of(user));
+        when(orderRepository.existsByCustomerId(13L)).thenReturn(true);
+
+        assertThatThrownBy(() -> adminService.deleteUser(1L, 13L))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
+    @Test
+    void deleteUserRemovesVendorWithNoProducts() {
+        User user = userWithId(27L, "petvendor1", UserRole.VENDOR, true);
+        Vendor vendor = vendorFor(user, "Happy Tails Pet Store");
+
+        when(userRepository.findById(27L)).thenReturn(Optional.of(user));
+        when(productRepository.existsByVendorId(27L)).thenReturn(false);
+        when(vendorRepository.findById(27L)).thenReturn(Optional.of(vendor));
+
+        adminService.deleteUser(1L, 27L);
+
+        verify(vendorRepository).delete(vendor);
+        verify(userRepository).delete(user);
+    }
+
+    @Test
+    void deleteUserThrowsWhenVendorHasProducts() {
+        User user = userWithId(9L, "cartvendor1", UserRole.VENDOR, true);
+
+        when(userRepository.findById(9L)).thenReturn(Optional.of(user));
+        when(productRepository.existsByVendorId(9L)).thenReturn(true);
+
+        assertThatThrownBy(() -> adminService.deleteUser(1L, 9L))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
+    @Test
+    void deleteUserThrowsWhenSelfDelete() {
+        assertThatThrownBy(() -> adminService.deleteUser(1L, 1L))
+            .isInstanceOf(BadRequestException.class);
+
+        verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    void deleteUserThrowsWhenTargetIsAdmin() {
+        User otherAdmin = userWithId(2L, "otheradmin", UserRole.ADMIN, true);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(otherAdmin));
+
+        assertThatThrownBy(() -> adminService.deleteUser(1L, 2L))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(userRepository, never()).delete(any(User.class));
     }
 }

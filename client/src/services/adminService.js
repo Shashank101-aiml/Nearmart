@@ -8,6 +8,10 @@ export function setUserEnabled(id, enabled) {
   return api.patch(`/admin/users/${id}/status`, { enabled }).then((res) => res.data)
 }
 
+export function deleteUser(id) {
+  return api.delete(`/admin/users/${id}`)
+}
+
 export function listVendors() {
   return api.get('/admin/vendors').then((res) => res.data)
 }

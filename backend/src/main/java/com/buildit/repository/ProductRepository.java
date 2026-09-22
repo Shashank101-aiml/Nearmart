@@ -11,4 +11,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByVendorId(Long vendorId);
     List<Product> findByAvailableTrue();
     List<Product> findByVendorIdAndAvailableTrue(Long vendorId);
+    boolean existsByVendorId(Long vendorId);
 }

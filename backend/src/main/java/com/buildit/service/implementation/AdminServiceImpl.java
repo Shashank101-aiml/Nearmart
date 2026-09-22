@@ -6,15 +6,21 @@ import com.buildit.dto.response.AdminOrderResponse;
 import com.buildit.dto.response.AdminOrderSummaryResponse;
 import com.buildit.dto.response.AdminUserResponse;
 import com.buildit.dto.response.AdminVendorResponse;
+import com.buildit.entity.Customer;
 import com.buildit.entity.Order;
 import com.buildit.entity.OrderItem;
 import com.buildit.entity.User;
 import com.buildit.entity.Vendor;
+import com.buildit.enums.UserRole;
 import com.buildit.exception.BadRequestException;
 import com.buildit.exception.DuplicateResourceException;
 import com.buildit.exception.ResourceNotFoundException;
+import com.buildit.repository.CartRepository;
+import com.buildit.repository.CustomerRepository;
+import com.buildit.repository.NotificationRepository;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.repository.OrderRepository;
+import com.buildit.repository.ProductRepository;
 import com.buildit.repository.UserRepository;
 import com.buildit.repository.VendorRepository;
 import com.buildit.service.AdminService;
@@ -28,13 +34,23 @@ import java.util.List;
 public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final VendorRepository vendorRepository;
+    private final CustomerRepository customerRepository;
+    private final CartRepository cartRepository;
+    private final NotificationRepository notificationRepository;
+    private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
 
     public AdminServiceImpl(UserRepository userRepository, VendorRepository vendorRepository,
+                             CustomerRepository customerRepository, CartRepository cartRepository,
+                             NotificationRepository notificationRepository, ProductRepository productRepository,
                              OrderRepository orderRepository, OrderItemRepository orderItemRepository) {
         this.userRepository = userRepository;
         this.vendorRepository = vendorRepository;
+        this.customerRepository = customerRepository;
+        this.cartRepository = cartRepository;
+        this.notificationRepository = notificationRepository;
+        this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
     }
@@ -42,8 +58,8 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<AdminUserResponse> listUsers() {
         return userRepository.findAll().stream()
-            .map(u -> new AdminUserResponse(u.getId(), u.getUsername(), u.getEmail(), u.getRole().name(),
-                u.getEnabled()))
+            .map(u -> new AdminUserResponse(u.getId(), u.getUsername(), u.getEmail(), u.getPhoneNumber(),
+                u.getRole().name(), u.getEnabled()))
             .toList();
     }
 
@@ -67,8 +83,43 @@ public class AdminServiceImpl implements AdminService {
         user.setEnabled(enabled);
         user = userRepository.save(user);
 
-        return new AdminUserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole().name(),
-            user.getEnabled());
+        return new AdminUserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getPhoneNumber(),
+            user.getRole().name(), user.getEnabled());
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long actingAdminId, Long targetUserId) {
+        if (actingAdminId.equals(targetUserId)) {
+            throw new BadRequestException("You cannot delete your own account");
+        }
+
+        User user = userRepository.findById(targetUserId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new BadRequestException("Admin accounts cannot be deleted");
+        }
+
+        if (user.getRole() == UserRole.CUSTOMER) {
+            if (orderRepository.existsByCustomerId(targetUserId)) {
+                throw new BadRequestException("Cannot delete a customer with order history");
+            }
+            cartRepository.findByCustomerId(targetUserId).ifPresent(cartRepository::delete);
+            notificationRepository.deleteByCustomerId(targetUserId);
+            Customer customer = customerRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+            customerRepository.delete(customer);
+        } else if (user.getRole() == UserRole.VENDOR) {
+            if (productRepository.existsByVendorId(targetUserId)) {
+                throw new BadRequestException("Cannot delete a vendor with product listings");
+            }
+            Vendor vendor = vendorRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
+            vendorRepository.delete(vendor);
+        }
+
+        userRepository.delete(user);
     }
 
     @Override

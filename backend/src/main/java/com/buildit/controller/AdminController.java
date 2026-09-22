@@ -14,6 +14,7 @@ import com.buildit.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,6 +47,13 @@ public class AdminController {
                                                                 @Valid @RequestBody UpdateUserStatusRequest request) {
         return ResponseEntity.ok(
             adminService.setUserEnabled(principal.getUser().getId(), id, request.getEnabled()));
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal CustomUserDetails principal,
+                                            @PathVariable Long id) {
+        adminService.deleteUser(principal.getUser().getId(), id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/vendors")

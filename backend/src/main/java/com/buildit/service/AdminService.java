@@ -12,6 +12,7 @@ public interface AdminService {
     List<AdminUserResponse> listUsers();
     List<AdminVendorResponse> listVendors();
     AdminUserResponse setUserEnabled(Long actingAdminId, Long targetUserId, boolean enabled);
+    void deleteUser(Long actingAdminId, Long targetUserId);
     AdminVendorResponse updateVendor(Long vendorId, UpdateVendorRequest request);
     List<AdminOrderSummaryResponse> listAllOrders();
     AdminOrderResponse getOrder(Long orderId);
