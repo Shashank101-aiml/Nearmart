@@ -56,7 +56,7 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link to="/register?role=VENDOR" className="hover:text-accent">
+              <Link to="/register?role=VENDOR" target="_blank" rel="noopener noreferrer" className="hover:text-accent">
                 Nearmart Partner
               </Link>
             </li>
