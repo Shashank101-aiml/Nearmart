@@ -68,6 +68,8 @@ export function CartProvider({ children }) {
 
   const removeItem = (productId) => runMutation(productId, () => cartService.removeItem(productId))
 
+  const refreshCart = () => cartService.getCart().then(setCart).catch(() => {})
+
   const itemCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0
 
   const value = {
@@ -82,6 +84,7 @@ export function CartProvider({ children }) {
     incrementItem,
     decrementItem,
     removeItem,
+    refreshCart,
   }
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

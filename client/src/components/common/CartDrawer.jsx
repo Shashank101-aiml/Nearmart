@@ -19,6 +19,7 @@ export default function CartDrawer() {
     incrementItem,
     decrementItem,
     removeItem,
+    refreshCart,
   } = useCart()
   const [error, setError] = useState('')
   const [checkingOut, setCheckingOut] = useState(false)
@@ -32,6 +33,10 @@ export default function CartDrawer() {
     setCheckingOut(true)
     try {
       const order = await orderService.placeOrder()
+      // placeOrder() already deletes the cart's items server-side, regardless of
+      // whether payment ends up succeeding — sync local state now so the drawer
+      // doesn't keep showing items that no longer exist and 404 on any action.
+      refreshCart()
       openRazorpayCheckout(order, {
         onSettled: () => {
           closeCart()
