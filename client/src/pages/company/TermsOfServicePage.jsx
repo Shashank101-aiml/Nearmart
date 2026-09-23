@@ -1,4 +1,4 @@
-import HeroBanner from '../../components/common/HeroBanner'
+import CompanyPageBanner from '../../components/common/CompanyPageBanner'
 
 const SECTIONS = [
   {
@@ -54,7 +54,7 @@ const SECTIONS = [
 export default function TermsOfServicePage() {
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto px-8 pt-6 pb-12 text-left">
-      <HeroBanner />
+      <CompanyPageBanner />
 
       <div className="mx-auto mt-12 max-w-3xl">
         <h1 className="m-0 mb-2 text-[32px] text-text-h">Terms of Service</h1>

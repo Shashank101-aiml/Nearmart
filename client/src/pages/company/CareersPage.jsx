@@ -1,9 +1,9 @@
-import HeroBanner from '../../components/common/HeroBanner'
+import CompanyPageBanner from '../../components/common/CompanyPageBanner'
 
 export default function CareersPage() {
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto px-8 pt-6 pb-12 text-left">
-      <HeroBanner />
+      <CompanyPageBanner />
 
       <div className="mx-auto mt-12 max-w-3xl">
         <h1 className="m-0 mb-4 text-[32px] text-text-h">Careers at Nearmart</h1>
