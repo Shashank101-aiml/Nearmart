@@ -14,6 +14,7 @@ const NAV_LINKS = {
   ADMIN: [
     { to: '/admin/users', label: 'Users' },
     { to: '/admin/vendors', label: 'Vendors' },
+    { to: '/admin/delivery-partners', label: 'Delivery Partners' },
     { to: '/admin/orders', label: 'Orders' },
   ],
 }

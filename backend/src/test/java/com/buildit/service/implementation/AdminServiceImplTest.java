@@ -1,6 +1,7 @@
 package com.buildit.service.implementation;
 
 import com.buildit.dto.request.UpdateVendorRequest;
+import com.buildit.dto.response.AdminDeliveryPartnerResponse;
 import com.buildit.dto.response.AdminOrderResponse;
 import com.buildit.dto.response.AdminOrderSummaryResponse;
 import com.buildit.dto.response.AdminUserResponse;
@@ -159,6 +160,22 @@ class AdminServiceImplTest {
         AdminVendorResponse response = results.get(0);
         assertThat(response.getStoreName()).isEqualTo("Acme Store");
         assertThat(response.getEnabled()).isFalse();
+    }
+
+    @Test
+    void listDeliveryPartnersReturnsProfileDetailsAndEnabledStatus() {
+        User user = userWithId(31L, "rider1", UserRole.DELIVERY_PARTNER, true);
+        DeliveryPartner deliveryPartner = deliveryPartnerFor(user, "Rider One");
+
+        when(deliveryPartnerRepository.findAll()).thenReturn(List.of(deliveryPartner));
+
+        List<AdminDeliveryPartnerResponse> results = adminService.listDeliveryPartners();
+
+        assertThat(results).hasSize(1);
+        AdminDeliveryPartnerResponse response = results.get(0);
+        assertThat(response.getName()).isEqualTo("Rider One");
+        assertThat(response.getVehicleNumber()).isEqualTo("KA-01-AB-1234");
+        assertThat(response.getEnabled()).isTrue();
     }
 
     @Test

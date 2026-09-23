@@ -3,6 +3,7 @@ package com.buildit.controller;
 import com.buildit.dto.request.UpdateProductStatusRequest;
 import com.buildit.dto.request.UpdateUserStatusRequest;
 import com.buildit.dto.request.UpdateVendorRequest;
+import com.buildit.dto.response.AdminDeliveryPartnerResponse;
 import com.buildit.dto.response.AdminOrderResponse;
 import com.buildit.dto.response.AdminOrderSummaryResponse;
 import com.buildit.dto.response.AdminUserResponse;
@@ -59,6 +60,11 @@ public class AdminController {
     @GetMapping("/vendors")
     public ResponseEntity<List<AdminVendorResponse>> listVendors() {
         return ResponseEntity.ok(adminService.listVendors());
+    }
+
+    @GetMapping("/delivery-partners")
+    public ResponseEntity<List<AdminDeliveryPartnerResponse>> listDeliveryPartners() {
+        return ResponseEntity.ok(adminService.listDeliveryPartners());
     }
 
     @PutMapping("/vendors/{id}")

@@ -15,6 +15,7 @@ import DeliveryDashboardPage from '../pages/delivery/DeliveryDashboardPage'
 import AdminHome from '../pages/admin/AdminHome'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminVendorsPage from '../pages/admin/AdminVendorsPage'
+import AdminDeliveryPartnersPage from '../pages/admin/AdminDeliveryPartnersPage'
 import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
 
 function HomeRedirect() {
@@ -134,6 +135,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <AdminVendorsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/delivery-partners"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <AdminDeliveryPartnersPage />
           </ProtectedRoute>
         }
       />

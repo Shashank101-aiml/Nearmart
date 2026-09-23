@@ -1,6 +1,7 @@
 package com.buildit.service;
 
 import com.buildit.dto.request.UpdateVendorRequest;
+import com.buildit.dto.response.AdminDeliveryPartnerResponse;
 import com.buildit.dto.response.AdminOrderResponse;
 import com.buildit.dto.response.AdminOrderSummaryResponse;
 import com.buildit.dto.response.AdminUserResponse;
@@ -11,6 +12,7 @@ import java.util.List;
 public interface AdminService {
     List<AdminUserResponse> listUsers();
     List<AdminVendorResponse> listVendors();
+    List<AdminDeliveryPartnerResponse> listDeliveryPartners();
     AdminUserResponse setUserEnabled(Long actingAdminId, Long targetUserId, boolean enabled);
     void deleteUser(Long actingAdminId, Long targetUserId);
     AdminVendorResponse updateVendor(Long vendorId, UpdateVendorRequest request);

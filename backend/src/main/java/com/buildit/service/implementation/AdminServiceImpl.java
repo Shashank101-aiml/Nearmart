@@ -1,6 +1,7 @@
 package com.buildit.service.implementation;
 
 import com.buildit.dto.request.UpdateVendorRequest;
+import com.buildit.dto.response.AdminDeliveryPartnerResponse;
 import com.buildit.dto.response.AdminOrderItemResponse;
 import com.buildit.dto.response.AdminOrderResponse;
 import com.buildit.dto.response.AdminOrderSummaryResponse;
@@ -65,6 +66,15 @@ public class AdminServiceImpl implements AdminService {
         return userRepository.findAll().stream()
             .map(u -> new AdminUserResponse(u.getId(), u.getUsername(), u.getEmail(), u.getPhoneNumber(),
                 u.getRole().name(), u.getEnabled()))
+            .toList();
+    }
+
+    @Override
+    public List<AdminDeliveryPartnerResponse> listDeliveryPartners() {
+        return deliveryPartnerRepository.findAll().stream()
+            .map(dp -> new AdminDeliveryPartnerResponse(dp.getId(), dp.getUser().getUsername(),
+                dp.getUser().getEmail(), dp.getUser().getPhoneNumber(), dp.getUser().getEnabled(), dp.getName(),
+                dp.getVehicleNumber(), dp.getAvailable()))
             .toList();
     }
 

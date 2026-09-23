@@ -6,15 +6,22 @@ import { badgeClassFor } from '../../utils/badges'
 export default function AdminHome() {
   const [users, setUsers] = useState([])
   const [vendors, setVendors] = useState([])
+  const [deliveryPartners, setDeliveryPartners] = useState([])
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    Promise.all([adminService.listUsers(), adminService.listVendors(), adminService.listOrders()])
-      .then(([userData, vendorData, orderData]) => {
+    Promise.all([
+      adminService.listUsers(),
+      adminService.listVendors(),
+      adminService.listDeliveryPartners(),
+      adminService.listOrders(),
+    ])
+      .then(([userData, vendorData, deliveryPartnerData, orderData]) => {
         setUsers(userData)
         setVendors(vendorData)
+        setDeliveryPartners(deliveryPartnerData)
         setOrders(orderData)
       })
       .catch((err) => setError(err.message || 'Failed to load dashboard'))
@@ -25,8 +32,6 @@ export default function AdminHome() {
     counts[order.status] = (counts[order.status] || 0) + 1
     return counts
   }, {})
-
-  const deliveryPartnerCount = users.filter((u) => u.role === 'DELIVERY_PARTNER').length
 
   const statCardClasses = 'flex flex-1 flex-col gap-1 rounded-lg border border-border bg-bg p-5 no-underline'
 
@@ -49,8 +54,8 @@ export default function AdminHome() {
             <span className="text-3xl font-bold text-accent">{vendors.length}</span>
             <span className="text-sm text-text-h">Vendors</span>
           </Link>
-          <Link to="/admin/users?role=DELIVERY_PARTNER" className={statCardClasses}>
-            <span className="text-3xl font-bold text-accent">{deliveryPartnerCount}</span>
+          <Link to="/admin/delivery-partners" className={statCardClasses}>
+            <span className="text-3xl font-bold text-accent">{deliveryPartners.length}</span>
             <span className="text-sm text-text-h">Delivery Partners</span>
           </Link>
           <Link to="/admin/orders" className={statCardClasses}>

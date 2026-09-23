@@ -20,6 +20,10 @@ export function updateVendor(id, payload) {
   return api.put(`/admin/vendors/${id}`, payload).then((res) => res.data)
 }
 
+export function listDeliveryPartners() {
+  return api.get('/admin/delivery-partners').then((res) => res.data)
+}
+
 export function listOrders() {
   return api.get('/admin/orders').then((res) => res.data)
 }
