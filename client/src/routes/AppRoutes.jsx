@@ -19,6 +19,8 @@ import AdminDeliveryPartnersPage from '../pages/admin/AdminDeliveryPartnersPage'
 import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
 import AboutUsPage from '../pages/company/AboutUsPage'
 import CareersPage from '../pages/company/CareersPage'
+import HelpSupportPage from '../pages/company/HelpSupportPage'
+import TermsOfServicePage from '../pages/company/TermsOfServicePage'
 
 function HomeRedirect() {
   const { isAuthenticated, user } = useAuth()
@@ -171,6 +173,22 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute requireAuth={false}>
             <CareersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/help"
+        element={
+          <ProtectedRoute requireAuth={false}>
+            <HelpSupportPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <ProtectedRoute requireAuth={false}>
+            <TermsOfServicePage />
           </ProtectedRoute>
         }
       />

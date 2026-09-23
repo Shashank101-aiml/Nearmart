@@ -67,14 +67,14 @@ export default function Footer() {
           <h4 className="mb-3 text-xs font-black tracking-wider text-text-h uppercase">Contact</h4>
           <ul className="flex flex-col gap-2 text-xs font-semibold text-text">
             <li>
-              <a href="#" className="hover:text-accent">
+              <Link to="/help" target="_blank" rel="noopener noreferrer" className="hover:text-accent">
                 Help &amp; Support
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#" className="hover:text-accent">
+              <Link to="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-accent">
                 Terms of Service
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
