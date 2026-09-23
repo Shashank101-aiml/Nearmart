@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { roleHomePath } from '../utils/roleHome'
 import ProtectedRoute from './ProtectedRoute'
@@ -28,7 +28,9 @@ function HomeRedirect() {
 
 function PublicOnlyRoute({ children }) {
   const { isAuthenticated, user } = useAuth()
-  if (isAuthenticated) return <Navigate to={roleHomePath(user.role)} replace />
+  const [searchParams] = useSearchParams()
+  const hasExplicitRoleIntent = searchParams.has('role')
+  if (isAuthenticated && !hasExplicitRoleIntent) return <Navigate to={roleHomePath(user.role)} replace />
   return children
 }
 
