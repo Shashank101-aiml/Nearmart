@@ -1,20 +1,23 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const VALID_ROLES = ['CUSTOMER', 'VENDOR', 'DELIVERY_PARTNER']
 
-const initialForm = {
-  username: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-  role: 'CUSTOMER',
-  displayName: '',
-  address: '',
-  phoneNumber: '',
-  vehicleNumber: '',
+function initialFormFor(roleParam) {
+  return {
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: VALID_ROLES.includes(roleParam) ? roleParam : 'CUSTOMER',
+    displayName: '',
+    address: '',
+    phoneNumber: '',
+    vehicleNumber: '',
+  }
 }
 
 function validate(form) {
@@ -40,7 +43,8 @@ function validate(form) {
 export default function RegisterPage() {
   const { register } = useAuth()
   const { showToast } = useToast()
-  const [form, setForm] = useState(initialForm)
+  const [searchParams] = useSearchParams()
+  const [form, setForm] = useState(() => initialFormFor(searchParams.get('role')))
   const [fieldErrors, setFieldErrors] = useState({})
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)

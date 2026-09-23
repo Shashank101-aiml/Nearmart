@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { PRODUCT_CATEGORIES } from '../../constants/categories'
 
 const FOOTER_CATEGORIES = ['VEGETABLES', 'DAIRY_EGGS', 'COLD_DRINKS', 'PHARMACY']
@@ -46,19 +46,19 @@ export default function Footer() {
           <h4 className="mb-3 text-xs font-black tracking-wider text-text-h uppercase">Company</h4>
           <ul className="flex flex-col gap-2 text-xs font-semibold text-text">
             <li>
-              <a href="#" className="hover:text-accent">
+              <Link to="/about" className="hover:text-accent">
                 About Us
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#" className="hover:text-accent">
+              <Link to="/careers" className="hover:text-accent">
                 Careers
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#" className="hover:text-accent">
+              <Link to="/register?role=VENDOR" className="hover:text-accent">
                 Nearmart Partner
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

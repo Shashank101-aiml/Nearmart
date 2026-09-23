@@ -17,6 +17,8 @@ import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminVendorsPage from '../pages/admin/AdminVendorsPage'
 import AdminDeliveryPartnersPage from '../pages/admin/AdminDeliveryPartnersPage'
 import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
+import AboutUsPage from '../pages/company/AboutUsPage'
+import CareersPage from '../pages/company/CareersPage'
 
 function HomeRedirect() {
   const { isAuthenticated, user } = useAuth()
@@ -151,6 +153,22 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <AdminOrdersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/about"
+        element={
+          <ProtectedRoute requireAuth={false}>
+            <AboutUsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/careers"
+        element={
+          <ProtectedRoute requireAuth={false}>
+            <CareersPage />
           </ProtectedRoute>
         }
       />
