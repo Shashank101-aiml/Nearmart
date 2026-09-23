@@ -83,14 +83,50 @@ export default function Footer() {
       <div className="mx-auto mt-8 flex w-full max-w-7xl flex-col items-center justify-between gap-4 border-t border-border px-8 pt-6 text-xs font-medium text-text sm:flex-row">
         <p className="m-0">&copy; 2026 Nearmart Technologies Pvt. Ltd. All rights reserved.</p>
         <div className="flex gap-4 text-base text-text">
-          <a href="#" className="hover:text-accent" aria-label="Instagram">
+          <a
+            href="https://www.facebook.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-accent"
+            aria-label="Facebook"
+          >
+            <i className="fa-brands fa-facebook" />
+          </a>
+          <a
+            href="https://www.x.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-accent"
+            aria-label="X"
+          >
+            <i className="fa-brands fa-x-twitter" />
+          </a>
+          <a
+            href="https://www.instagram.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-accent"
+            aria-label="Instagram"
+          >
             <i className="fa-brands fa-instagram" />
           </a>
-          <a href="#" className="hover:text-accent" aria-label="Twitter">
-            <i className="fa-brands fa-twitter" />
+          <a
+            href="https://www.linkedin.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-accent"
+            aria-label="LinkedIn"
+          >
+            <i className="fa-brands fa-linkedin" />
           </a>
-          <a href="#" className="hover:text-accent" aria-label="Facebook">
-            <i className="fa-brands fa-facebook" />
+          <a
+            href="https://www.threads.net"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-accent"
+            aria-label="Threads"
+          >
+            <i className="fa-brands fa-threads" />
           </a>
         </div>
       </div>
