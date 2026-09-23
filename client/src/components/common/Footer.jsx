@@ -46,12 +46,12 @@ export default function Footer() {
           <h4 className="mb-3 text-xs font-black tracking-wider text-text-h uppercase">Company</h4>
           <ul className="flex flex-col gap-2 text-xs font-semibold text-text">
             <li>
-              <Link to="/about" className="hover:text-accent">
+              <Link to="/about" target="_blank" rel="noopener noreferrer" className="hover:text-accent">
                 About Us
               </Link>
             </li>
             <li>
-              <Link to="/careers" className="hover:text-accent">
+              <Link to="/careers" target="_blank" rel="noopener noreferrer" className="hover:text-accent">
                 Careers
               </Link>
             </li>
