@@ -34,7 +34,10 @@ export default function HelpSupportPage() {
         <h2 className="mt-10 mb-4 text-xl text-text-h">Common topics</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {TOPICS.map((topic) => (
-            <div key={topic.title} className="rounded-xl border border-border bg-bg p-4">
+            <div
+              key={topic.title}
+              className="rounded-xl border border-border bg-bg p-4 transition-transform duration-200 ease-out hover:-translate-y-1 hover:shadow-lg"
+            >
               <h3 className="m-0 mb-1 text-sm font-black text-text-h">{topic.title}</h3>
               <p className="m-0 text-sm leading-relaxed text-text">{topic.body}</p>
             </div>
