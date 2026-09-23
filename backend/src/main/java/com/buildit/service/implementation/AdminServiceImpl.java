@@ -7,6 +7,7 @@ import com.buildit.dto.response.AdminOrderSummaryResponse;
 import com.buildit.dto.response.AdminUserResponse;
 import com.buildit.dto.response.AdminVendorResponse;
 import com.buildit.entity.Customer;
+import com.buildit.entity.DeliveryPartner;
 import com.buildit.entity.Order;
 import com.buildit.entity.OrderItem;
 import com.buildit.entity.User;
@@ -17,6 +18,7 @@ import com.buildit.exception.DuplicateResourceException;
 import com.buildit.exception.ResourceNotFoundException;
 import com.buildit.repository.CartRepository;
 import com.buildit.repository.CustomerRepository;
+import com.buildit.repository.DeliveryPartnerRepository;
 import com.buildit.repository.NotificationRepository;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.repository.OrderRepository;
@@ -40,11 +42,13 @@ public class AdminServiceImpl implements AdminService {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final DeliveryPartnerRepository deliveryPartnerRepository;
 
     public AdminServiceImpl(UserRepository userRepository, VendorRepository vendorRepository,
                              CustomerRepository customerRepository, CartRepository cartRepository,
                              NotificationRepository notificationRepository, ProductRepository productRepository,
-                             OrderRepository orderRepository, OrderItemRepository orderItemRepository) {
+                             OrderRepository orderRepository, OrderItemRepository orderItemRepository,
+                             DeliveryPartnerRepository deliveryPartnerRepository) {
         this.userRepository = userRepository;
         this.vendorRepository = vendorRepository;
         this.customerRepository = customerRepository;
@@ -53,6 +57,7 @@ public class AdminServiceImpl implements AdminService {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.deliveryPartnerRepository = deliveryPartnerRepository;
     }
 
     @Override
@@ -117,6 +122,13 @@ public class AdminServiceImpl implements AdminService {
             Vendor vendor = vendorRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
             vendorRepository.delete(vendor);
+        } else if (user.getRole() == UserRole.DELIVERY_PARTNER) {
+            if (orderItemRepository.existsByDeliveryPartnerId(targetUserId)) {
+                throw new BadRequestException("Cannot delete a delivery partner with delivery history");
+            }
+            DeliveryPartner deliveryPartner = deliveryPartnerRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery partner not found"));
+            deliveryPartnerRepository.delete(deliveryPartner);
         }
 
         userRepository.delete(user);

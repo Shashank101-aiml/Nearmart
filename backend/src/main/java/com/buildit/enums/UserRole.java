@@ -3,5 +3,6 @@ package com.buildit.enums;
 public enum UserRole {
     CUSTOMER,
     VENDOR,
-    ADMIN
+    ADMIN,
+    DELIVERY_PARTNER
 }

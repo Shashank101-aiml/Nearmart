@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import * as adminService from '../../services/adminService'
 
-const ROLE_OPTIONS = ['ALL', 'CUSTOMER', 'VENDOR', 'ADMIN']
+const ROLE_OPTIONS = ['ALL', 'CUSTOMER', 'VENDOR', 'DELIVERY_PARTNER', 'ADMIN']
 
 export default function AdminUsersPage() {
   const { user: currentUser } = useAuth()
@@ -92,7 +92,7 @@ export default function AdminUsersPage() {
           >
             {ROLE_OPTIONS.map((role) => (
               <option key={role} value={role}>
-                {role === 'ALL' ? 'All roles' : role}
+                {role === 'ALL' ? 'All roles' : role.replace('_', ' ')}
               </option>
             ))}
           </select>

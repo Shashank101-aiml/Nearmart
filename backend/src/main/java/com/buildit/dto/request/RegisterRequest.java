@@ -32,6 +32,8 @@ public class RegisterRequest {
     @Pattern(regexp = "^[0-9]{10}$", message = "Please enter a valid Number")
     private String phoneNumber;
 
+    private String vehicleNumber;
+
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
     public String getEmail() { return email; }
@@ -46,4 +48,6 @@ public class RegisterRequest {
     public void setAddress(String address) { this.address = address; }
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public String getVehicleNumber() { return vehicleNumber; }
+    public void setVehicleNumber(String vehicleNumber) { this.vehicleNumber = vehicleNumber; }
 }

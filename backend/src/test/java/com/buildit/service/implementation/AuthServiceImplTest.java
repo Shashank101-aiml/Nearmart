@@ -11,6 +11,7 @@ import com.buildit.enums.UserRole;
 import com.buildit.exception.BadRequestException;
 import com.buildit.exception.DuplicateResourceException;
 import com.buildit.repository.CustomerRepository;
+import com.buildit.repository.DeliveryPartnerRepository;
 import com.buildit.repository.UserRepository;
 import com.buildit.repository.VendorRepository;
 import com.buildit.security.CustomUserDetails;
@@ -42,6 +43,7 @@ class AuthServiceImplTest {
     @Mock private UserRepository userRepository;
     @Mock private CustomerRepository customerRepository;
     @Mock private VendorRepository vendorRepository;
+    @Mock private DeliveryPartnerRepository deliveryPartnerRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtTokenProvider jwtTokenProvider;
@@ -101,6 +103,28 @@ class AuthServiceImplTest {
         assertThat(response.getRole()).isEqualTo("VENDOR");
         verify(vendorRepository).save(any());
         verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    void registerDeliveryPartnerSucceeds() {
+        RegisterRequest request = baseRequest(UserRole.DELIVERY_PARTNER);
+        request.setVehicleNumber("KA-01-AB-1234");
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            u.setId(3L);
+            return u;
+        });
+        when(jwtTokenProvider.generateToken(any(Authentication.class))).thenReturn("token999");
+
+        AuthResponse response = authService.register(request);
+
+        assertThat(response.getRole()).isEqualTo("DELIVERY_PARTNER");
+        verify(deliveryPartnerRepository).save(argThat(dp -> dp.getVehicleNumber().equals("KA-01-AB-1234")));
+        verify(customerRepository, never()).save(any());
+        verify(vendorRepository, never()).save(any());
     }
 
     @Test

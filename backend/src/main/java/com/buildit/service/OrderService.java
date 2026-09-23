@@ -1,6 +1,7 @@
 package com.buildit.service;
 
 import com.buildit.dto.request.VerifyPaymentRequest;
+import com.buildit.dto.response.DeliveryItemResponse;
 import com.buildit.dto.response.OrderResponse;
 import com.buildit.dto.response.VendorOrderResponse;
 import com.buildit.enums.ItemFulfillmentStatus;
@@ -17,4 +18,9 @@ public interface OrderService {
     OrderResponse retryPayment(Long customerId, Long orderId);
     VendorOrderResponse updateItemFulfillmentStatus(Long vendorId, Long orderId, Long itemId,
                                                      ItemFulfillmentStatus newStatus);
+    List<DeliveryItemResponse> listAvailableDeliveryItems();
+    List<DeliveryItemResponse> listMyDeliveryItems(Long deliveryPartnerId);
+    DeliveryItemResponse claimDeliveryItem(Long deliveryPartnerId, Long itemId);
+    DeliveryItemResponse updateDeliveryItemStatus(Long deliveryPartnerId, Long itemId,
+                                                   ItemFulfillmentStatus newStatus);
 }

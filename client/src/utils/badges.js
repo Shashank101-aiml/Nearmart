@@ -9,6 +9,7 @@ export function badgeClassFor(status) {
 
 export function fulfillmentBadgeClassFor(status) {
   if (status === 'SHIPPED') return `${BASE} bg-blue-600/10 text-blue-600`
+  if (status === 'OUT_FOR_DELIVERY') return `${BASE} bg-amber-600/10 text-amber-600`
   if (status === 'DELIVERED') return `${BASE} bg-green-600/10 text-green-600`
   return `${BASE} bg-code-bg text-text`
 }

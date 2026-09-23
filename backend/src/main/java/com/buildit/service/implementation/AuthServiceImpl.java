@@ -7,12 +7,14 @@ import com.buildit.dto.request.RegisterRequest;
 import com.buildit.dto.response.AuthResponse;
 import com.buildit.dto.response.OtpRequestResponse;
 import com.buildit.entity.Customer;
+import com.buildit.entity.DeliveryPartner;
 import com.buildit.entity.User;
 import com.buildit.entity.Vendor;
 import com.buildit.enums.UserRole;
 import com.buildit.exception.BadRequestException;
 import com.buildit.exception.DuplicateResourceException;
 import com.buildit.repository.CustomerRepository;
+import com.buildit.repository.DeliveryPartnerRepository;
 import com.buildit.repository.UserRepository;
 import com.buildit.repository.VendorRepository;
 import com.buildit.security.CustomUserDetails;
@@ -32,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final VendorRepository vendorRepository;
+    private final DeliveryPartnerRepository deliveryPartnerRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -40,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthServiceImpl(UserRepository userRepository,
                             CustomerRepository customerRepository,
                             VendorRepository vendorRepository,
+                            DeliveryPartnerRepository deliveryPartnerRepository,
                             PasswordEncoder passwordEncoder,
                             AuthenticationManager authenticationManager,
                             JwtTokenProvider jwtTokenProvider,
@@ -47,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.vendorRepository = vendorRepository;
+        this.deliveryPartnerRepository = deliveryPartnerRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -89,12 +94,19 @@ public class AuthServiceImpl implements AuthService {
             customer.setName(request.getDisplayName());
             customer.setAddress(request.getAddress());
             customerRepository.save(customer);
-        } else {
+        } else if (request.getRole() == UserRole.VENDOR) {
             Vendor vendor = new Vendor();
             vendor.setUser(user);
             vendor.setStoreName(request.getDisplayName());
             vendor.setLocation(request.getAddress());
             vendorRepository.save(vendor);
+        } else if (request.getRole() == UserRole.DELIVERY_PARTNER) {
+            DeliveryPartner deliveryPartner = new DeliveryPartner();
+            deliveryPartner.setUser(user);
+            deliveryPartner.setName(request.getDisplayName());
+            deliveryPartner.setVehicleNumber(request.getVehicleNumber());
+            deliveryPartner.setAvailable(true);
+            deliveryPartnerRepository.save(deliveryPartner);
         }
 
         return buildAuthResponse(user);

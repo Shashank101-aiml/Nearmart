@@ -6,6 +6,7 @@ import com.buildit.dto.response.AdminOrderSummaryResponse;
 import com.buildit.dto.response.AdminUserResponse;
 import com.buildit.dto.response.AdminVendorResponse;
 import com.buildit.entity.Customer;
+import com.buildit.entity.DeliveryPartner;
 import com.buildit.entity.Order;
 import com.buildit.entity.OrderItem;
 import com.buildit.entity.Product;
@@ -18,6 +19,7 @@ import com.buildit.exception.DuplicateResourceException;
 import com.buildit.exception.ResourceNotFoundException;
 import com.buildit.repository.CartRepository;
 import com.buildit.repository.CustomerRepository;
+import com.buildit.repository.DeliveryPartnerRepository;
 import com.buildit.repository.NotificationRepository;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.repository.OrderRepository;
@@ -50,6 +52,7 @@ class AdminServiceImplTest {
     @Mock private ProductRepository productRepository;
     @Mock private OrderRepository orderRepository;
     @Mock private OrderItemRepository orderItemRepository;
+    @Mock private DeliveryPartnerRepository deliveryPartnerRepository;
 
     @InjectMocks
     private AdminServiceImpl adminService;
@@ -71,6 +74,15 @@ class AdminServiceImplTest {
         vendor.setStoreName(storeName);
         vendor.setLocation("Downtown");
         return vendor;
+    }
+
+    private DeliveryPartner deliveryPartnerFor(User user, String name) {
+        DeliveryPartner deliveryPartner = new DeliveryPartner();
+        deliveryPartner.setId(user.getId());
+        deliveryPartner.setUser(user);
+        deliveryPartner.setName(name);
+        deliveryPartner.setVehicleNumber("KA-01-AB-1234");
+        return deliveryPartner;
     }
 
     private Customer customerWithIdAndName(Long id, String name, User user) {
@@ -404,6 +416,34 @@ class AdminServiceImplTest {
         when(userRepository.findById(2L)).thenReturn(Optional.of(otherAdmin));
 
         assertThatThrownBy(() -> adminService.deleteUser(1L, 2L))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
+    @Test
+    void deleteUserRemovesDeliveryPartnerWithNoDeliveryHistory() {
+        User user = userWithId(31L, "rider1", UserRole.DELIVERY_PARTNER, true);
+        DeliveryPartner deliveryPartner = deliveryPartnerFor(user, "Rider One");
+
+        when(userRepository.findById(31L)).thenReturn(Optional.of(user));
+        when(orderItemRepository.existsByDeliveryPartnerId(31L)).thenReturn(false);
+        when(deliveryPartnerRepository.findById(31L)).thenReturn(Optional.of(deliveryPartner));
+
+        adminService.deleteUser(1L, 31L);
+
+        verify(deliveryPartnerRepository).delete(deliveryPartner);
+        verify(userRepository).delete(user);
+    }
+
+    @Test
+    void deleteUserThrowsWhenDeliveryPartnerHasDeliveryHistory() {
+        User user = userWithId(31L, "rider1", UserRole.DELIVERY_PARTNER, true);
+
+        when(userRepository.findById(31L)).thenReturn(Optional.of(user));
+        when(orderItemRepository.existsByDeliveryPartnerId(31L)).thenReturn(true);
+
+        assertThatThrownBy(() -> adminService.deleteUser(1L, 31L))
             .isInstanceOf(BadRequestException.class);
 
         verify(userRepository, never()).delete(any(User.class));

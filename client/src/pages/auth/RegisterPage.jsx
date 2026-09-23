@@ -14,6 +14,7 @@ const initialForm = {
   displayName: '',
   address: '',
   phoneNumber: '',
+  vehicleNumber: '',
 }
 
 function validate(form) {
@@ -26,7 +27,11 @@ function validate(form) {
     errors.displayName = form.role === 'VENDOR' ? 'Store name is required' : 'Name is required'
   }
   if (!form.address.trim()) errors.address = 'Address is required'
-  if (form.role === 'CUSTOMER' && form.phoneNumber && !/^\d{10}$/.test(form.phoneNumber)) {
+  if (
+    (form.role === 'CUSTOMER' || form.role === 'DELIVERY_PARTNER') &&
+    form.phoneNumber &&
+    !/^\d{10}$/.test(form.phoneNumber)
+  ) {
     errors.phoneNumber = 'Please enter a valid Number'
   }
   return errors
@@ -61,7 +66,9 @@ export default function RegisterPage() {
         role: form.role,
         displayName: form.displayName,
         address: form.address,
-        phoneNumber: form.role === 'CUSTOMER' ? form.phoneNumber || null : null,
+        phoneNumber:
+          form.role === 'CUSTOMER' || form.role === 'DELIVERY_PARTNER' ? form.phoneNumber || null : null,
+        vehicleNumber: form.role === 'DELIVERY_PARTNER' ? form.vehicleNumber || null : null,
       }
       await register(payload)
     } catch (err) {
@@ -94,6 +101,7 @@ export default function RegisterPage() {
           <select name="role" value={form.role} onChange={handleChange} className={fieldClasses}>
             <option value="CUSTOMER">Customer</option>
             <option value="VENDOR">Vendor</option>
+            <option value="DELIVERY_PARTNER">Delivery Partner</option>
           </select>
         </label>
 
@@ -134,9 +142,9 @@ export default function RegisterPage() {
         </label>
         {fieldErrors.address && <p className={fieldErrorClasses}>{fieldErrors.address}</p>}
 
-        {form.role === 'CUSTOMER' && (
+        {(form.role === 'CUSTOMER' || form.role === 'DELIVERY_PARTNER') && (
           <label className={labelClasses}>
-            Phone number (optional — enables quick phone login)
+            {form.role === 'CUSTOMER' ? 'Phone number (optional — enables quick phone login)' : 'Phone number'}
             <input
               name="phoneNumber"
               type="tel"
@@ -149,6 +157,18 @@ export default function RegisterPage() {
           </label>
         )}
         {fieldErrors.phoneNumber && <p className={fieldErrorClasses}>{fieldErrors.phoneNumber}</p>}
+
+        {form.role === 'DELIVERY_PARTNER' && (
+          <label className={labelClasses}>
+            Vehicle number (optional)
+            <input
+              name="vehicleNumber"
+              value={form.vehicleNumber}
+              onChange={handleChange}
+              className={fieldClasses}
+            />
+          </label>
+        )}
 
         <label className={labelClasses}>
           Password

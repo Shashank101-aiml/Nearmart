@@ -24,11 +24,10 @@ export default function VendorOrdersPage() {
   }
 
   const handleAdvance = async (orderId, item) => {
-    const nextStatus = item.fulfillmentStatus === 'PROCESSING' ? 'SHIPPED' : 'DELIVERED'
     setError('')
     setUpdatingItemId(item.id)
     try {
-      const updated = await vendorOrderService.updateItemFulfillment(orderId, item.id, nextStatus)
+      const updated = await vendorOrderService.updateItemFulfillment(orderId, item.id, 'SHIPPED')
       setOrders((current) => current.map((o) => (o.id === updated.id ? updated : o)))
     } catch (err) {
       setError(err.message || 'Failed to update item status')
@@ -91,17 +90,13 @@ export default function VendorOrdersPage() {
                     <span className={fulfillmentBadgeClassFor(item.fulfillmentStatus)}>
                       {item.fulfillmentStatus}
                     </span>
-                    {item.fulfillmentStatus !== 'DELIVERED' && (
+                    {item.fulfillmentStatus === 'PROCESSING' && (
                       <button
                         type="button"
                         disabled={updatingItemId === item.id}
                         onClick={() => handleAdvance(order.id, item)}
                       >
-                        {updatingItemId === item.id
-                          ? 'Updating...'
-                          : item.fulfillmentStatus === 'PROCESSING'
-                            ? 'Mark shipped'
-                            : 'Mark delivered'}
+                        {updatingItemId === item.id ? 'Updating...' : 'Mark shipped'}
                       </button>
                     )}
                   </div>

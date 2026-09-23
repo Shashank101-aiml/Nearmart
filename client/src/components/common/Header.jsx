@@ -10,6 +10,7 @@ const NAV_LINKS = {
     { to: '/customer/notifications', label: 'Notifications' },
   ],
   VENDOR: [{ to: '/vendor/orders', label: 'Orders' }],
+  DELIVERY_PARTNER: [{ to: '/delivery', label: 'Deliveries' }],
   ADMIN: [
     { to: '/admin/users', label: 'Users' },
     { to: '/admin/vendors', label: 'Vendors' },

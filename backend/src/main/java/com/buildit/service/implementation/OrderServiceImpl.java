@@ -1,11 +1,13 @@
 package com.buildit.service.implementation;
 
 import com.buildit.dto.request.VerifyPaymentRequest;
+import com.buildit.dto.response.DeliveryItemResponse;
 import com.buildit.dto.response.OrderItemResponse;
 import com.buildit.dto.response.OrderResponse;
 import com.buildit.dto.response.VendorOrderResponse;
 import com.buildit.entity.Cart;
 import com.buildit.entity.CartItem;
+import com.buildit.entity.DeliveryPartner;
 import com.buildit.entity.Order;
 import com.buildit.entity.OrderItem;
 import com.buildit.entity.Payment;
@@ -20,6 +22,7 @@ import com.buildit.messaging.producer.NotificationProducer;
 import com.buildit.messaging.producer.OrderProducer;
 import com.buildit.repository.CartItemRepository;
 import com.buildit.repository.CartRepository;
+import com.buildit.repository.DeliveryPartnerRepository;
 import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.repository.OrderRepository;
@@ -55,6 +58,7 @@ public class OrderServiceImpl implements OrderService {
     private final WebSocketPublisher webSocketPublisher;
     private final AdminOrderPublisher adminOrderPublisher;
     private final NotificationProducer notificationProducer;
+    private final DeliveryPartnerRepository deliveryPartnerRepository;
     private final String razorpayKeyId;
 
     public OrderServiceImpl(OrderRepository orderRepository,
@@ -68,6 +72,7 @@ public class OrderServiceImpl implements OrderService {
                              WebSocketPublisher webSocketPublisher,
                              AdminOrderPublisher adminOrderPublisher,
                              NotificationProducer notificationProducer,
+                             DeliveryPartnerRepository deliveryPartnerRepository,
                              @Value("${razorpay.key-id}") String razorpayKeyId) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -80,6 +85,7 @@ public class OrderServiceImpl implements OrderService {
         this.webSocketPublisher = webSocketPublisher;
         this.adminOrderPublisher = adminOrderPublisher;
         this.notificationProducer = notificationProducer;
+        this.deliveryPartnerRepository = deliveryPartnerRepository;
         this.razorpayKeyId = razorpayKeyId;
     }
 
@@ -291,6 +297,9 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() != OrderStatus.PLACED) {
             throw new UnauthorizedException("This order has not been paid for yet");
         }
+        if (newStatus.ordinal() > ItemFulfillmentStatus.SHIPPED.ordinal()) {
+            throw new BadRequestException("Only a delivery partner can mark this delivered");
+        }
         if (newStatus.ordinal() <= item.getFulfillmentStatus().ordinal()) {
             throw new BadRequestException(
                 "Cannot move fulfillment status from " + item.getFulfillmentStatus() + " to " + newStatus);
@@ -308,6 +317,95 @@ public class OrderServiceImpl implements OrderService {
             .filter(i -> i.getProduct() != null && i.getProduct().getVendor().getId().equals(vendorId))
             .toList();
         return toVendorOrderResponse(order, ownedItems);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeliveryItemResponse> listAvailableDeliveryItems() {
+        return orderItemRepository.findByFulfillmentStatusAndDeliveryPartnerIsNull(ItemFulfillmentStatus.SHIPPED)
+            .stream()
+            .filter(item -> item.getOrder().getStatus() == OrderStatus.PLACED)
+            .map(this::toDeliveryItemResponse)
+            .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeliveryItemResponse> listMyDeliveryItems(Long deliveryPartnerId) {
+        return orderItemRepository.findByDeliveryPartnerId(deliveryPartnerId).stream()
+            .sorted(Comparator.comparing((OrderItem item) -> item.getOrder().getCreatedAt()).reversed())
+            .map(this::toDeliveryItemResponse)
+            .toList();
+    }
+
+    @Override
+    @Transactional
+    public DeliveryItemResponse claimDeliveryItem(Long deliveryPartnerId, Long itemId) {
+        OrderItem item = orderItemRepository.findById(itemId)
+            .orElseThrow(() -> new ResourceNotFoundException("Order item not found"));
+
+        if (item.getFulfillmentStatus() != ItemFulfillmentStatus.SHIPPED || item.getDeliveryPartner() != null) {
+            throw new BadRequestException("This item is not available for pickup");
+        }
+        if (item.getOrder().getStatus() != OrderStatus.PLACED) {
+            throw new UnauthorizedException("This order has not been paid for yet");
+        }
+
+        DeliveryPartner deliveryPartner = deliveryPartnerRepository.findById(deliveryPartnerId)
+            .orElseThrow(() -> new ResourceNotFoundException("Delivery partner not found"));
+
+        item.setDeliveryPartner(deliveryPartner);
+        item.setFulfillmentStatus(ItemFulfillmentStatus.OUT_FOR_DELIVERY);
+        item = orderItemRepository.save(item);
+
+        Order order = item.getOrder();
+        webSocketPublisher.notifyCustomer(order.getCustomer().getId(),
+            new TrackingUpdateMessage(order.getId(), itemId, ItemFulfillmentStatus.OUT_FOR_DELIVERY.name()));
+        notificationProducer.sendNotification(order.getCustomer().getId(),
+            "Your item \"" + item.getProductTitle() + "\" is now " + ItemFulfillmentStatus.OUT_FOR_DELIVERY + ".");
+
+        return toDeliveryItemResponse(item);
+    }
+
+    @Override
+    @Transactional
+    public DeliveryItemResponse updateDeliveryItemStatus(Long deliveryPartnerId, Long itemId,
+                                                           ItemFulfillmentStatus newStatus) {
+        OrderItem item = orderItemRepository.findById(itemId)
+            .orElseThrow(() -> new ResourceNotFoundException("Order item not found"));
+
+        if (item.getDeliveryPartner() == null || !item.getDeliveryPartner().getId().equals(deliveryPartnerId)) {
+            throw new UnauthorizedException("You do not own this item");
+        }
+        if (newStatus.ordinal() <= item.getFulfillmentStatus().ordinal()) {
+            throw new BadRequestException(
+                "Cannot move fulfillment status from " + item.getFulfillmentStatus() + " to " + newStatus);
+        }
+
+        item.setFulfillmentStatus(newStatus);
+        item = orderItemRepository.save(item);
+
+        Order order = item.getOrder();
+        webSocketPublisher.notifyCustomer(order.getCustomer().getId(),
+            new TrackingUpdateMessage(order.getId(), itemId, newStatus.name()));
+        notificationProducer.sendNotification(order.getCustomer().getId(),
+            "Your item \"" + item.getProductTitle() + "\" is now " + newStatus + ".");
+
+        return toDeliveryItemResponse(item);
+    }
+
+    private DeliveryItemResponse toDeliveryItemResponse(OrderItem item) {
+        return new DeliveryItemResponse(
+            item.getId(),
+            item.getOrder().getId(),
+            item.getProductTitle(),
+            item.getUnitPrice(),
+            item.getQuantity(),
+            item.getUnitPrice() * item.getQuantity(),
+            item.getFulfillmentStatus().name(),
+            item.getOrder().getCustomer().getName(),
+            item.getProduct() != null ? item.getProduct().getImageUrl() : null
+        );
     }
 
     private VendorOrderResponse toVendorOrderResponse(Order order, List<OrderItem> items) {

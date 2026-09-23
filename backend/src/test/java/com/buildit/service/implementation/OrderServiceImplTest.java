@@ -3,9 +3,11 @@ package com.buildit.service.implementation;
 import com.buildit.dto.request.VerifyPaymentRequest;
 import com.buildit.dto.response.OrderResponse;
 import com.buildit.dto.response.VendorOrderResponse;
+import com.buildit.dto.response.DeliveryItemResponse;
 import com.buildit.entity.Cart;
 import com.buildit.entity.CartItem;
 import com.buildit.entity.Customer;
+import com.buildit.entity.DeliveryPartner;
 import com.buildit.entity.Inventory;
 import com.buildit.entity.Order;
 import com.buildit.entity.OrderItem;
@@ -22,6 +24,7 @@ import com.buildit.messaging.events.OrderCreatedEvent;
 import com.buildit.messaging.producer.OrderProducer;
 import com.buildit.repository.CartItemRepository;
 import com.buildit.repository.CartRepository;
+import com.buildit.repository.DeliveryPartnerRepository;
 import com.buildit.repository.InventoryRepository;
 import com.buildit.repository.OrderItemRepository;
 import com.buildit.repository.OrderRepository;
@@ -81,6 +84,7 @@ class OrderServiceImplTest {
     @Mock private WebSocketPublisher webSocketPublisher;
     @Mock private AdminOrderPublisher adminOrderPublisher;
     @Mock private NotificationProducer notificationProducer;
+    @Mock private DeliveryPartnerRepository deliveryPartnerRepository;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -161,6 +165,13 @@ class OrderServiceImplTest {
         product.setPrice(price);
         product.setVendor(vendorWithId(vendorId));
         return product;
+    }
+
+    private DeliveryPartner deliveryPartnerWithId(Long id) {
+        DeliveryPartner deliveryPartner = new DeliveryPartner();
+        deliveryPartner.setId(id);
+        deliveryPartner.setName("Delivery Partner " + id);
+        return deliveryPartner;
     }
 
     private OrderItem orderItemFor(Order order, Product product, int quantity) {
@@ -618,7 +629,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void updateItemFulfillmentStatusAdvancesShippedToDelivered() {
+    void updateItemFulfillmentStatusRejectsVendorSettingDelivered() {
         Customer customer = customerWithIdAndName(1L, "Jane Doe");
         Order order = orderWithId(100L, customer);
         Product product = productOwnedBy(5L, 10L, 3.0);
@@ -628,15 +639,12 @@ class OrderServiceImplTest {
 
         when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
         when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
-        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(item));
 
-        VendorOrderResponse response =
-            orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.DELIVERED);
+        assertThatThrownBy(() -> orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.DELIVERED))
+            .isInstanceOf(BadRequestException.class);
 
-        assertThat(item.getFulfillmentStatus()).isEqualTo(ItemFulfillmentStatus.DELIVERED);
-        assertThat(response.getItems().get(0).getFulfillmentStatus()).isEqualTo("DELIVERED");
-        verify(webSocketPublisher).notifyCustomer(eq(1L), any());
-        verify(notificationProducer).sendNotification(eq(1L), anyString());
+        assertThat(item.getFulfillmentStatus()).isEqualTo(ItemFulfillmentStatus.SHIPPED);
+        verify(orderItemRepository, never()).save(any());
     }
 
     @Test
@@ -739,5 +747,146 @@ class OrderServiceImplTest {
 
         assertThatThrownBy(() -> orderService.updateItemFulfillmentStatus(10L, 100L, 200L, ItemFulfillmentStatus.SHIPPED))
             .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void listAvailableDeliveryItemsReturnsUnclaimedShippedItemsFromPlacedOrders() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order placedOrder = orderWithId(100L, customer);
+        Order pendingOrder = orderWithIdAndStatus(101L, customer, OrderStatus.PENDING_PAYMENT);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+
+        OrderItem eligibleItem = orderItemFor(placedOrder, product, 1);
+        eligibleItem.setId(200L);
+        eligibleItem.setFulfillmentStatus(ItemFulfillmentStatus.SHIPPED);
+
+        OrderItem unpaidOrderItem = orderItemFor(pendingOrder, product, 1);
+        unpaidOrderItem.setId(201L);
+        unpaidOrderItem.setFulfillmentStatus(ItemFulfillmentStatus.SHIPPED);
+
+        when(orderItemRepository.findByFulfillmentStatusAndDeliveryPartnerIsNull(ItemFulfillmentStatus.SHIPPED))
+            .thenReturn(List.of(eligibleItem, unpaidOrderItem));
+
+        List<DeliveryItemResponse> results = orderService.listAvailableDeliveryItems();
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getId()).isEqualTo(200L);
+    }
+
+    @Test
+    void listMyDeliveryItemsReturnsPartnersOwnItemsNewestFirst() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order olderOrder = orderWithId(100L, customer);
+        Order newerOrder = orderWithId(101L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+
+        OrderItem olderItem = orderItemFor(olderOrder, product, 1);
+        olderItem.setId(200L);
+        OrderItem newerItem = orderItemFor(newerOrder, product, 1);
+        newerItem.setId(201L);
+        newerOrder.setCreatedAt(olderOrder.getCreatedAt().plusMinutes(5));
+
+        when(orderItemRepository.findByDeliveryPartnerId(30L)).thenReturn(List.of(olderItem, newerItem));
+
+        List<DeliveryItemResponse> results = orderService.listMyDeliveryItems(30L);
+
+        assertThat(results).extracting(DeliveryItemResponse::getId).containsExactly(201L, 200L);
+    }
+
+    @Test
+    void claimDeliveryItemSucceedsForUnclaimedShippedItem() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+        item.setFulfillmentStatus(ItemFulfillmentStatus.SHIPPED);
+        DeliveryPartner deliveryPartner = deliveryPartnerWithId(30L);
+
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+        when(deliveryPartnerRepository.findById(30L)).thenReturn(Optional.of(deliveryPartner));
+        when(orderItemRepository.save(any(OrderItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DeliveryItemResponse response = orderService.claimDeliveryItem(30L, 200L);
+
+        assertThat(item.getDeliveryPartner()).isEqualTo(deliveryPartner);
+        assertThat(item.getFulfillmentStatus()).isEqualTo(ItemFulfillmentStatus.OUT_FOR_DELIVERY);
+        assertThat(response.getFulfillmentStatus()).isEqualTo("OUT_FOR_DELIVERY");
+        verify(webSocketPublisher).notifyCustomer(eq(1L), any());
+        verify(notificationProducer).sendNotification(eq(1L), anyString());
+    }
+
+    @Test
+    void claimDeliveryItemThrowsWhenAlreadyClaimed() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+        item.setFulfillmentStatus(ItemFulfillmentStatus.SHIPPED);
+        item.setDeliveryPartner(deliveryPartnerWithId(99L));
+
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> orderService.claimDeliveryItem(30L, 200L))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(orderItemRepository, never()).save(any());
+    }
+
+    @Test
+    void claimDeliveryItemThrowsWhenNotYetShipped() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> orderService.claimDeliveryItem(30L, 200L))
+            .isInstanceOf(BadRequestException.class);
+
+        verify(orderItemRepository, never()).save(any());
+    }
+
+    @Test
+    void updateDeliveryItemStatusMarksDelivered() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+        item.setFulfillmentStatus(ItemFulfillmentStatus.OUT_FOR_DELIVERY);
+        item.setDeliveryPartner(deliveryPartnerWithId(30L));
+
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+        when(orderItemRepository.save(any(OrderItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DeliveryItemResponse response =
+            orderService.updateDeliveryItemStatus(30L, 200L, ItemFulfillmentStatus.DELIVERED);
+
+        assertThat(item.getFulfillmentStatus()).isEqualTo(ItemFulfillmentStatus.DELIVERED);
+        assertThat(response.getFulfillmentStatus()).isEqualTo("DELIVERED");
+        verify(webSocketPublisher).notifyCustomer(eq(1L), any());
+        verify(notificationProducer).sendNotification(eq(1L), anyString());
+    }
+
+    @Test
+    void updateDeliveryItemStatusThrowsUnauthorizedWhenNotOwner() {
+        Customer customer = customerWithIdAndName(1L, "Jane Doe");
+        Order order = orderWithId(100L, customer);
+        Product product = productOwnedBy(5L, 10L, 3.0);
+        OrderItem item = orderItemFor(order, product, 2);
+        item.setId(200L);
+        item.setFulfillmentStatus(ItemFulfillmentStatus.OUT_FOR_DELIVERY);
+        item.setDeliveryPartner(deliveryPartnerWithId(99L));
+
+        when(orderItemRepository.findById(200L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> orderService.updateDeliveryItemStatus(30L, 200L, ItemFulfillmentStatus.DELIVERED))
+            .isInstanceOf(UnauthorizedException.class);
+
+        verify(orderItemRepository, never()).save(any());
     }
 }

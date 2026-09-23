@@ -11,6 +11,7 @@ import OrdersPage from '../pages/customer/OrdersPage'
 import NotificationsPage from '../pages/customer/NotificationsPage'
 import VendorHome from '../pages/vendor/VendorHome'
 import VendorOrdersPage from '../pages/vendor/VendorOrdersPage'
+import DeliveryDashboardPage from '../pages/delivery/DeliveryDashboardPage'
 import AdminHome from '../pages/admin/AdminHome'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminVendorsPage from '../pages/admin/AdminVendorsPage'
@@ -101,6 +102,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['VENDOR']}>
             <VendorOrdersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/delivery"
+        element={
+          <ProtectedRoute allowedRoles={['DELIVERY_PARTNER']}>
+            <DeliveryDashboardPage />
           </ProtectedRoute>
         }
       />

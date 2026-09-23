@@ -31,6 +31,10 @@ public class OrderItem {
     @Column(name = "fulfillment_status", nullable = false)
     private ItemFulfillmentStatus fulfillmentStatus = ItemFulfillmentStatus.PROCESSING;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "delivery_partner_id")
+    private DeliveryPartner deliveryPartner;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Order getOrder() { return order; }
@@ -45,4 +49,6 @@ public class OrderItem {
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public ItemFulfillmentStatus getFulfillmentStatus() { return fulfillmentStatus; }
     public void setFulfillmentStatus(ItemFulfillmentStatus fulfillmentStatus) { this.fulfillmentStatus = fulfillmentStatus; }
+    public DeliveryPartner getDeliveryPartner() { return deliveryPartner; }
+    public void setDeliveryPartner(DeliveryPartner deliveryPartner) { this.deliveryPartner = deliveryPartner; }
 }
