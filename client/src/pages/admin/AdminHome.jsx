@@ -26,6 +26,8 @@ export default function AdminHome() {
     return counts
   }, {})
 
+  const deliveryPartnerCount = users.filter((u) => u.role === 'DELIVERY_PARTNER').length
+
   const statCardClasses = 'flex flex-1 flex-col gap-1 rounded-lg border border-border bg-bg p-5 no-underline'
 
   return (
@@ -46,6 +48,10 @@ export default function AdminHome() {
           <Link to="/admin/vendors" className={statCardClasses}>
             <span className="text-3xl font-bold text-accent">{vendors.length}</span>
             <span className="text-sm text-text-h">Vendors</span>
+          </Link>
+          <Link to="/admin/users?role=DELIVERY_PARTNER" className={statCardClasses}>
+            <span className="text-3xl font-bold text-accent">{deliveryPartnerCount}</span>
+            <span className="text-sm text-text-h">Delivery Partners</span>
           </Link>
           <Link to="/admin/orders" className={statCardClasses}>
             <span className="text-3xl font-bold text-accent">{orders.length}</span>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import * as adminService from '../../services/adminService'
 
@@ -7,12 +7,16 @@ const ROLE_OPTIONS = ['ALL', 'CUSTOMER', 'VENDOR', 'DELIVERY_PARTNER', 'ADMIN']
 
 export default function AdminUsersPage() {
   const { user: currentUser } = useAuth()
+  const [searchParams] = useSearchParams()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busyId, setBusyId] = useState(null)
   const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState('ALL')
+  const [roleFilter, setRoleFilter] = useState(() => {
+    const fromUrl = searchParams.get('role')
+    return ROLE_OPTIONS.includes(fromUrl) ? fromUrl : 'ALL'
+  })
 
   useEffect(() => {
     adminService
